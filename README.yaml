@@ -62,3 +62,33 @@ usage: |-
    size_gb                         = "20"
    }
     ```
+  ##for mysql replication
+    ```hcl
+  module "flexible-mysql" {
+   source                          = "clouddrove/flexible-mysql/azure"
+   name                            = "app"
+   environment                     = "test"
+   label_order                     = ["environment", "name"]
+   main_rg_name                    = data.azurerm_resource_group.main.name
+   resource_group_name             = module.resource_group.resource_group_name
+   location                        = module.resource_group.resource_group_location
+   virtual_network_id              = module.vnet.vnet_id[0]
+   delegated_subnet_id             = module.subnet.default_subnet_id[0]
+   mysql_version                   = "8.0.21"
+   mysql_server_name               = "testmysqlserver"
+   zone                            = "1"
+   admin_username                  = "mysqlusern"
+   admin_password                  = "ba5yatgfgfhdsvvc6A3ns2lu4gqzzc"
+   sku_name                        = "GP_Standard_D8ds_v4"
+   db_name                         = "maindb"
+   charset                         = "utf8"
+   collation                       = "utf8_unicode_ci"
+   server_configuration_name       = "interactive_timeout"
+   auto_grow_enabled               = true
+   iops                            = 360
+   size_gb                         = "20"
+   existing_private_dns_zone       = true
+   existing_private_dns_zone_id    = data.azurerm_private_dns_zone.main.id
+   existing_private_dns_zone_name  = data.azurerm_private_dns_zone.main.name
+   }
+    ```

@@ -15,7 +15,7 @@ module "resource_group" {
 module "vnet" {
   source              = "clouddrove/vnet/azure"
   version             = "1.0.0"
-  name                = "app2"
+  name                = "app"
   environment         = "test"
   label_order         = ["name", "environment"]
   resource_group_name = module.resource_group.resource_group_name
@@ -27,7 +27,7 @@ module "vnet" {
 module "subnet" {
   source               = "clouddrove/subnet/azure"
   version              = "1.0.1"
-  name                 = "app2"
+  name                 = "app"
   environment          = "test"
   label_order          = ["name", "environment"]
   resource_group_name  = module.resource_group.resource_group_name
@@ -63,7 +63,7 @@ data "azurerm_private_dns_zone" "main" {
 module "flexible-mysql" {
   depends_on                     = [module.resource_group, module.vnet, data.azurerm_resource_group.main]
   source                         = "../.."
-  name                           = "app2"
+  name                           = "app"
   environment                    = "test"
   label_order                    = ["name", "environment"]
   main_rg_name                   = data.azurerm_resource_group.main.name
