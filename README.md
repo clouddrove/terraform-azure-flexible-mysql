@@ -169,12 +169,12 @@ module "flexible-mysql" {
 | replication\_role | The replication role. Possible value is None. | `string` | `null` | no |
 | repository | Terraform current module repo | `string` | `""` | no |
 | resource\_group\_name | A container that holds related resources for an Azure solution | `string` | `""` | no |
-| server\_configuration\_name | Specifies the name of the MySQL Flexible Server Configuration, which needs to be a valid MySQL configuration name. Changing this forces a new resource to be created. | `string` | `""` | no |
+| server\_configuration\_names | Specifies the name of the MySQL Flexible Server Configuration, which needs to be a valid MySQL configuration name. Changing this forces a new resource to be created. | `list(string)` | `[]` | no |
 | size\_gb | The max storage allowed for the MySQL Flexible Server. Possible values are between 20 and 16384. | `string` | `"20"` | no |
 | sku\_name | The SKU Name for the MySQL Flexible Server. | `string` | `"GP_Standard_D8ds_v4"` | no |
 | source\_server\_id | The resource ID of the source MySQL Flexible Server to be restored. Required when create\_mode is PointInTimeRestore, GeoRestore, and Replica. Changing this forces a new MySQL Flexible Server to be created. | `string` | `null` | no |
 | start\_ip\_address | n/a | `string` | `""` | no |
-| value | Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created. | `string` | `"600"` | no |
+| values | Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created. | `list(string)` | `[]` | no |
 | virtual\_network\_id | The name of the virtual network | `string` | `""` | no |
 | zone | Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are 1, 2 and 3. | `number` | `null` | no |
 
