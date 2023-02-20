@@ -80,7 +80,6 @@ module "flexible-mysql" {
   db_name                        = "maindb"
   charset                        = "utf8"
   collation                      = "utf8_unicode_ci"
-  server_configuration_name      = "interactive_timeout"
   auto_grow_enabled              = true
   iops                           = 360
   size_gb                        = "20"
@@ -88,5 +87,7 @@ module "flexible-mysql" {
   existing_private_dns_zone_id   = data.azurerm_private_dns_zone.main.id
   existing_private_dns_zone_name = data.azurerm_private_dns_zone.main.name
 
-
+  ##azurerm_mysql_flexible_server_configuration
+  server_configuration_names = ["interactive_timeout", "audit_log_enabled"]
+  values                     = ["600", "ON"]
 }

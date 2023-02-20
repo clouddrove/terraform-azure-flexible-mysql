@@ -190,13 +190,6 @@ variable "existing_private_dns_zone_name" {
   description = " The name of the Private DNS zone (without a terminating dot). Changing this forces a new resource to be created."
 }
 
-variable "value" {
-  type        = string
-  default     = "600"
-  description = "Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created."
-}
-
-
 variable "auto_grow_enabled" {
   type        = bool
   default     = false
@@ -229,10 +222,14 @@ variable "collation" {
   default     = ""
   description = "Specifies the Collation for the MySQL Database, which needs to be a valid MySQL Collation. Changing this forces a new resource to be created."
 }
-variable "server_configuration_name" {
-  type        = string
-  default     = ""
+variable "server_configuration_names" {
+  type        = list(string)
+  default     = []
   description = "Specifies the name of the MySQL Flexible Server Configuration, which needs to be a valid MySQL configuration name. Changing this forces a new resource to be created."
 }
 
-
+variable "values" {
+  type        = list(string)
+  default     = []
+  description = "Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created."
+}
