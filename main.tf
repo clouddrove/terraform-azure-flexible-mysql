@@ -38,6 +38,14 @@ resource "azurerm_mysql_flexible_server" "main" {
     iops              = var.iops
     size_gb           = var.size_gb
   }
+  dynamic "high_availability" {
+    for_each = toset(var.high_availability != null ? [var.high_availability] : [])
+
+    content {
+      mode                      = high_availability.value.mode
+      standby_availability_zone = lookup(high_availability.value, "standby_availability_zone", 1)
+    }
+  }
 
   version = var.mysql_version
   zone    = var.zone
