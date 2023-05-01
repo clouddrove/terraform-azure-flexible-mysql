@@ -102,7 +102,7 @@ variable "create_mode" {
 
 variable "geo_redundant_backup_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Should geo redundant backup enabled? Defaults to false. Changing this forces a new MySQL Flexible Server to be created."
 }
 
@@ -232,4 +232,15 @@ variable "values" {
   type        = list(string)
   default     = []
   description = "Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created."
+}
+variable "high_availability" {
+  description = "Map of high availability configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-high-availability. `null` to disable high availability"
+  type = object({
+    mode                      = string
+    standby_availability_zone = optional(number)
+  })
+  default = {
+    mode                      = "SameZone"
+    standby_availability_zone = 1
+  }
 }
