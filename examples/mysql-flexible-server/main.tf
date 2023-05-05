@@ -14,19 +14,18 @@ module "resource_group" {
 
 module "vnet" {
   source              = "clouddrove/vnet/azure"
-  version             = "1.0.1"
+  version             = "1.0.2"
   name                = "app"
   environment         = "test"
   label_order         = ["name", "environment"]
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   address_space       = "10.0.0.0/16"
-  enable_ddos_pp      = false
 }
 
 module "subnet" {
   source               = "clouddrove/subnet/azure"
-  version              = "1.0.1"
+  version              = "1.0.2"
   name                 = "app"
   environment          = "test"
   label_order          = ["name", "environment"]
@@ -35,10 +34,9 @@ module "subnet" {
   virtual_network_name = join("", module.vnet.vnet_name)
 
   #subnet
-  default_name_subnet = true
-  subnet_names        = ["default"]
-  subnet_prefixes     = ["10.0.1.0/24"]
-  service_endpoints   = ["Microsoft.Storage"]
+  subnet_names      = ["default"]
+  subnet_prefixes   = ["10.0.1.0/24"]
+  service_endpoints = ["Microsoft.Storage"]
   delegation = {
     flexibleServers_delegation = [
       {
