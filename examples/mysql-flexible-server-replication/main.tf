@@ -60,10 +60,9 @@ data "azurerm_private_dns_zone" "main" {
 
 module "flexible-mysql" {
   depends_on                     = [module.resource_group, module.vnet, data.azurerm_resource_group.main]
-  source                         = "../.."
+  source                         = "clouddrove/flexible-mysql/azure"
   name                           = "app"
   environment                    = "test"
-  label_order                    = ["name", "environment"]
   main_rg_name                   = data.azurerm_resource_group.main.name
   resource_group_name            = module.resource_group.resource_group_name
   location                       = module.resource_group.resource_group_location
