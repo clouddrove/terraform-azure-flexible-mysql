@@ -51,10 +51,9 @@ module "subnet" {
 
 module "flexible-mysql" {
   depends_on          = [module.resource_group, module.vnet]
-  source              = "../.."
+  source              = "clouddrove/flexible-mysql/azure"
   name                = "app"
   environment         = "test"
-  label_order         = ["name", "environment"]
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   virtual_network_id  = module.vnet.vnet_id[0]
