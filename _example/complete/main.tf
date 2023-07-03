@@ -2,35 +2,50 @@ provider "azurerm" {
   features {}
 }
 
-module "resource_group" {
-  source  = "clouddrove/resource-group/azure"
-  version = "1.0.2"
-
+locals {
   name        = "app"
   environment = "test"
   label_order = ["name", "environment"]
-  location    = "Canada Central"
 }
 
+##----------------------------------------------------------------------------- 
+## Resource Group module call
+## Resource group in which all resources will be deployed.
+##-----------------------------------------------------------------------------
+module "resource_group" {
+  source      = "clouddrove/resource-group/azure"
+  version     = "1.0.2"
+  name        = local.name
+  environment = local.environment
+  label_order = local.label_order
+  location    = "Central India"
+}
+
+##----------------------------------------------------------------------------- 
+## Virtual Network module call.
+##-----------------------------------------------------------------------------
 module "vnet" {
   source              = "clouddrove/vnet/azure"
   version             = "1.0.2"
-  name                = "app"
-  environment         = "test"
+  name                = local.name
+  environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   address_space       = "10.0.0.0/16"
 }
 
+##----------------------------------------------------------------------------- 
+## Subnet module call.
+## Delegated subnet for mysql.
+##-----------------------------------------------------------------------------
 module "subnet" {
   source               = "clouddrove/subnet/azure"
   version              = "1.0.2"
-  name                 = "app"
-  environment          = "test"
+  name                 = local.name
+  environment          = local.environment
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
   virtual_network_name = join("", module.vnet.vnet_name)
-
   #subnet
   subnet_names      = ["default"]
   subnet_prefixes   = ["10.0.1.0/24"]
@@ -45,13 +60,14 @@ module "subnet" {
   }
 }
 
-
-
+##----------------------------------------------------------------------------- 
+## Flexible Mysql server module call.
+##-----------------------------------------------------------------------------
 module "flexible-mysql" {
   depends_on          = [module.resource_group, module.vnet]
-  source              = "clouddrove/flexible-mysql/azure"
-  name                = "app"
-  environment         = "test"
+  source              = "../../"
+  name                = local.name
+  environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   virtual_network_id  = module.vnet.vnet_id[0]
@@ -69,9 +85,7 @@ module "flexible-mysql" {
   auto_grow_enabled   = true
   iops                = 360
   size_gb             = "20"
-
   ##azurerm_mysql_flexible_server_configuration
   server_configuration_names = ["interactive_timeout", "audit_log_enabled"]
   values                     = ["600", "ON"]
-
 }
