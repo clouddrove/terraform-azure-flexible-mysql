@@ -2,7 +2,6 @@
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
-  depends_on          = [module.resource_group, module.vnet]
   source              = "../../"
   name                = "app"
   environment         = "test"
