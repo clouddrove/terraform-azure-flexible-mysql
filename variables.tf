@@ -76,6 +76,12 @@ variable "admin_password" {
   default     = null
 }
 
+variable "admin_password_length" {
+  type        = number
+  default     = 16
+  description = "Length of random password generated."
+}
+
 variable "backup_retention_days" {
   type        = number
   default     = 7
