@@ -137,6 +137,7 @@ module "flexible-mysql" {
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | admin\_password | The password associated with the admin\_username user | `string` | `null` | no |
+| admin\_password\_length | Length of random password generated. | `number` | `16` | no |
 | admin\_username | The administrator login name for the new SQL Server | `any` | `null` | no |
 | auto\_grow\_enabled | Should Storage Auto Grow be enabled? Defaults to true. | `bool` | `false` | no |
 | backup\_retention\_days | The backup retention days for the MySQL Flexible Server. Possible values are between 1 and 35 days. Defaults to 7 | `number` | `7` | no |
