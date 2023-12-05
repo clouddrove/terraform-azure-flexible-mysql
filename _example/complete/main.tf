@@ -61,6 +61,25 @@ module "subnet" {
 }
 
 ##----------------------------------------------------------------------------- 
+## Log Analytics module call.
+##-----------------------------------------------------------------------------
+module "log-analytics" {
+  source                           = "clouddrove/log-analytics/azure"
+  version                          = "1.0.1"
+  name                             = local.name
+  environment                      = local.environment
+  label_order                      = local.label_order
+  create_log_analytics_workspace   = true
+  log_analytics_workspace_sku      = "PerGB2018"
+  retention_in_days                = 90
+  daily_quota_gb                   = "-1"
+  internet_ingestion_enabled       = true
+  internet_query_enabled           = true
+  resource_group_name              = module.resource_group.resource_group_name
+  log_analytics_workspace_location = module.resource_group.resource_group_location
+}
+
+##----------------------------------------------------------------------------- 
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
@@ -86,6 +105,7 @@ module "flexible-mysql" {
   iops                = 360
   size_gb             = "20"
   ##azurerm_mysql_flexible_server_configuration
-  server_configuration_names = ["interactive_timeout", "audit_log_enabled"]
-  values                     = ["600", "ON"]
+  server_configuration_names = ["interactive_timeout", "audit_log_enabled", "audit_log_events"]
+  values                     = ["600", "ON", "CONNECTION,ADMIN,DDL,TABLE_ACCESS"]
+  log_analytics_workspace_id = module.log-analytics.workspace_id
 }

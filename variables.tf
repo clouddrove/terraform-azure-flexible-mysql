@@ -250,3 +250,52 @@ variable "high_availability" {
     standby_availability_zone = 1
   }
 }
+
+variable "enable_diagnostic" {
+  type        = bool
+  default     = true
+  description = "Set to false to prevent the module from creating any resources."
+}
+
+
+variable "log_analytics_workspace_id" {
+  type        = string
+  default     = null
+  description = "Log Analytics workspace id in which logs should be retained."
+}
+
+variable "metric_enabled" {
+  type        = bool
+  default     = true
+  description = "Whether metric diagnonsis should be enable in diagnostic settings for flexible Mysql."
+}
+
+variable "log_category" {
+  type        = list(string)
+  default     = ["MySqlAuditLogs"]
+  description = "Categories of logs to be recorded in diagnostic setting. Acceptable values are MySqlSlowLogs , MySqlAuditLogs "
+}
+
+variable "log_analytics_destination_type" {
+  type        = string
+  default     = "AzureDiagnostics"
+  description = "Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table."
+}
+
+variable "storage_account_id" {
+  type        = string
+  default     = null
+  description = "Storage account id to pass it to destination details of diagnosys setting of NSG."
+}
+
+variable "eventhub_name" {
+  type        = string
+  default     = null
+  description = "Eventhub Name to pass it to destination details of diagnosys setting of NSG."
+}
+
+variable "eventhub_authorization_rule_id" {
+  type        = string
+  default     = null
+  description = "Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG."
+}

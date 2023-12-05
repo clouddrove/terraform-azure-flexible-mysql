@@ -151,6 +151,28 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main2" {
   tags                  = module.labels.tags
 }
 
+resource "azurerm_monitor_diagnostic_setting" "mysql" {
+  count                          = var.enabled && var.enable_diagnostic ? 1 : 0
+  name                           = format("%s-mysql-diagnostic-log", module.labels.id)
+  target_resource_id             = azurerm_mysql_flexible_server.main[0].id
+  log_analytics_workspace_id     = var.log_analytics_workspace_id
+  storage_account_id             = var.storage_account_id
+  eventhub_name                  = var.eventhub_name
+  eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
+  log_analytics_destination_type = var.log_analytics_destination_type
+  dynamic "enabled_log" {
+    for_each = var.log_category
+    content {
+      category = enabled_log.value
+    }
 
+  }
 
-
+  dynamic "metric" {
+    for_each = var.metric_enabled ? ["AllMetrics"] : []
+    content {
+      category = metric.value
+      enabled  = true
+    }
+  }
+}
