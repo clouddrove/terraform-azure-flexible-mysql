@@ -51,12 +51,6 @@ We have [*fifty plus terraform modules*][terraform_modules]. A few of them are c
 
 This module has a few dependencies: 
 
-- [Terraform 1.x.x](https://learn.hashicorp.com/terraform/getting-started/install.html)
-- [Go](https://golang.org/doc/install)
-- [github.com/stretchr/testify/assert](https://github.com/stretchr/testify)
-- [github.com/gruntwork-io/terratest/modules/terraform](https://github.com/gruntwork-io/terratest)
-
-
 
 
 
@@ -146,10 +140,13 @@ module "flexible-mysql" {
 | create\_mode | The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default` | `string` | `"Default"` | no |
 | db\_name | Specifies the name of the MySQL Database, which needs to be a valid MySQL identifier. Changing this forces a new resource to be created. | `string` | `""` | no |
 | delegated\_subnet\_id | The resource ID of the subnet | `string` | `""` | no |
+| enable\_diagnostic | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | enable\_private\_endpoint | Manages a Private Endpoint to Azure database for MySQL | `bool` | `false` | no |
 | enabled | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | end\_ip\_address | n/a | `string` | `""` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
+| eventhub\_authorization\_rule\_id | Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
+| eventhub\_name | Eventhub Name to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | existing\_private\_dns\_zone | Name of the existing private DNS zone | `bool` | `false` | no |
 | existing\_private\_dns\_zone\_id | n/a | `string` | `""` | no |
 | existing\_private\_dns\_zone\_name | The name of the Private DNS zone (without a terminating dot). Changing this forces a new resource to be created. | `string` | `""` | no |
@@ -160,8 +157,12 @@ module "flexible-mysql" {
 | key\_vault\_key\_id | The URL to a Key Vault Key | `string` | `null` | no |
 | label\_order | Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] . | `list(any)` | <pre>[<br>  "name",<br>  "environment"<br>]</pre> | no |
 | location | The Azure Region where the MySQL Flexible Server should exist. Changing this forces a new MySQL Flexible Server to be created. | `string` | `""` | no |
+| log\_analytics\_destination\_type | Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table. | `string` | `"AzureDiagnostics"` | no |
+| log\_analytics\_workspace\_id | Log Analytics workspace id in which logs should be retained. | `string` | `null` | no |
+| log\_category | Categories of logs to be recorded in diagnostic setting. Acceptable values are MySqlSlowLogs , MySqlAuditLogs | `list(string)` | <pre>[<br>  "MySqlAuditLogs"<br>]</pre> | no |
 | main\_rg\_name | n/a | `string` | `""` | no |
 | managedby | ManagedBy, eg ''. | `string` | `""` | no |
+| metric\_enabled | Whether metric diagnonsis should be enable in diagnostic settings for flexible Mysql. | `bool` | `true` | no |
 | mysql\_server\_name | n/a | `string` | `""` | no |
 | mysql\_version | The version of the MySQL Flexible Server to use. Possible values are 5.7, and 8.0.21. Changing this forces a new MySQL Flexible Server to be created. | `string` | `"5.7"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
@@ -176,6 +177,7 @@ module "flexible-mysql" {
 | sku\_name | The SKU Name for the MySQL Flexible Server. | `string` | `"GP_Standard_D8ds_v4"` | no |
 | source\_server\_id | The resource ID of the source MySQL Flexible Server to be restored. Required when create\_mode is PointInTimeRestore, GeoRestore, and Replica. Changing this forces a new MySQL Flexible Server to be created. | `string` | `null` | no |
 | start\_ip\_address | n/a | `string` | `""` | no |
+| storage\_account\_id | Storage account id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | values | Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created. | `list(string)` | `[]` | no |
 | virtual\_network\_id | The name of the virtual network | `string` | `""` | no |
 | zone | Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are 1, 2 and 3. | `number` | `null` | no |
