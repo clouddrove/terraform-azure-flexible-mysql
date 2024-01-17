@@ -4,7 +4,6 @@
 # Run `make readme` to rebuild the `README.md`
 #
 
-
 # Name of this project
 name: Terraform AZURE FLEXIBLE MYSQL
 
@@ -16,9 +15,12 @@ github_repo: clouddrove/terraform-azure-flexible-mysql
 
 # Badges to display
 badges:
-  - name: "Terraform"
-    image: "https://img.shields.io/badge/Terraform-v1.1.7-green"
-    url: "https://www.terraform.io"
+  - name: "Latest Release"
+    image: "https://img.shields.io/github/release/clouddrove/terraform-azure-flexible-mysql.svg"
+    url: "https://github.com/clouddrove/terraform-azure-flexible-mysql/releases/latest"
+  - name: "tfsec"
+    image: "https://github.com/clouddrove/terraform-azure-flexible-mysql/actions/workflows/tfsec.yml/badge.svg"
+    url: "https://github.com/clouddrove/terraform-azure-flexible-mysql/actions/workflows/tfsec.yml"
   - name: "Licence"
     image: "https://img.shields.io/badge/License-APACHE-blue.svg"
     url: "LICENSE.md"
@@ -34,61 +36,94 @@ include:
 # How to use this project
 # yamllint disable rule:line-length
 usage: |-
-  ### Simple Example
   Here is an example of how you can use this module in your inventory structure:
+  ### Basic Example
   ```hcl
-  module "flexible-mysql" {
-   source                          = "clouddrove/flexible-mysql/azure"
-   name                            = "app"
-   environment                     = "test"
-   label_order                     = ["environment", "name"]
-   resource_group_name             = module.resource_group.resource_group_name
-   location                        = module.resource_group.resource_group_location
-   virtual_network_id              = module.vnet.vnet_id[0]
-   delegated_subnet_id             = module.subnet.default_subnet_id[0]
-   mysql_version                   = "8.0.21"
-   mysql_server_name               = "testmysqlserver"
-   private_dns                     = true
-   zone                            = "1"
-   admin_username                  = "mysqlusername"
-   admin_password                  = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
-   sku_name                        = "GP_Standard_D8ds_v4"
-   db_name                         = "maindb"
-   charset                         = "utf8"
-   collation                       = "utf8_unicode_ci"
-   server_configuration_name       = "interactive_timeout"
-   auto_grow_enabled               = true
-   iops                            = 360
-   size_gb                         = "20"
-   }
-    ```
-  ##for mysql replication
-    ```hcl
-  module "flexible-mysql" {
-   source                          = "clouddrove/flexible-mysql/azure"
-   name                            = "app"
-   environment                     = "test"
-   label_order                     = ["environment", "name"]
-   main_rg_name                    = data.azurerm_resource_group.main.name
-   resource_group_name             = module.resource_group.resource_group_name
-   location                        = module.resource_group.resource_group_location
-   virtual_network_id              = module.vnet.vnet_id[0]
-   delegated_subnet_id             = module.subnet.default_subnet_id[0]
-   mysql_version                   = "8.0.21"
-   mysql_server_name               = "testmysqlserver"
-   zone                            = "1"
-   admin_username                  = "mysqlusern"
-   admin_password                  = "ba5yatgfgfhdsvvc6A3ns2lu4gqzzc"
-   sku_name                        = "GP_Standard_D8ds_v4"
-   db_name                         = "maindb"
-   charset                         = "utf8"
-   collation                       = "utf8_unicode_ci"
-   server_configuration_name       = "interactive_timeout"
-   auto_grow_enabled               = true
-   iops                            = 360
-   size_gb                         = "20"
-   existing_private_dns_zone       = true
-   existing_private_dns_zone_id    = data.azurerm_private_dns_zone.main.id
-   existing_private_dns_zone_name  = data.azurerm_private_dns_zone.main.name
-   }
-    ```
+    module "flexible-mysql" {
+      source              = "clouddrove/flexible-mysql/azure"
+      name                = "app"
+      environment         = "test"
+      resource_group_name = "test-rg"
+      location            = "Central India"
+      virtual_network_id  = "/subscriptions/---------------<vnet_id>---------------"
+      delegated_subnet_id = "/subscriptions/---------------<delegated_subnet_id>---------------"
+      mysql_version       = "8.0.21"
+      private_dns         = true
+      zone                = "1"
+      admin_username      = "mysqlusername"
+      admin_password      = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
+      sku_name            = "GP_Standard_D8ds_v4"
+      db_name             = "maindb"
+      charset             = "utf8mb3"
+      collation           = "utf8mb3_unicode_ci"
+      auto_grow_enabled   = true
+      iops                = 360
+      size_gb             = "20"
+      ##azurerm_mysql_flexible_server_configuration
+      server_configuration_names = ["interactive_timeout", "audit_log_enabled"]
+      values                     = ["600", "ON"]
+    }
+  ```
+
+  ### complete Example
+  ```hcl
+    module "flexible-mysql" {
+      source              = "clouddrove/flexible-mysql/azure"
+      name                = "app"
+      environment         = "test"
+      resource_group_name = module.resource_group.resource_group_name
+      location            = module.resource_group.resource_group_location
+      virtual_network_id  = module.vnet.vnet_id
+      delegated_subnet_id = module.subnet.default_subnet_id[0]
+      mysql_version       = "8.0.21"
+      private_dns         = true
+      zone                = "1"
+      admin_username      = "mysqlusername"
+      admin_password      = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
+      sku_name            = "GP_Standard_D2ds_v4"
+      db_name             = "maindb"
+      charset             = "utf8mb3"
+      collation           = "utf8mb3_unicode_ci"
+      auto_grow_enabled   = true
+      iops                = 360
+      size_gb             = "20"
+      ##azurerm_mysql_flexible_server_configuration
+      enable_diagnostic          = true
+      server_configuration_names = ["interactive_timeout", "audit_log_enabled", "audit_log_events"]
+      values                     = ["600", "ON", "CONNECTION,ADMIN,DDL,TABLE_ACCESS"]
+      log_analytics_workspace_id = module.log-analytics.workspace_id
+    }
+  ```
+
+  ##mysql-flexible-server-replication
+  ```hcl
+    module "flexible-mysql" {
+       source                          = "clouddrove/flexible-mysql/azure"
+       name                            = "app"
+       environment                     = "test"
+       label_order                     = ["environment", "name"]
+        main_rg_name                   = data.azurerm_resource_group.main.name
+        resource_group_name            = module.resource_group.resource_group_name
+        location                       = module.resource_group.resource_group_location
+        virtual_network_id             = module.vnet.vnet_id
+        delegated_subnet_id            = module.subnet.default_subnet_id[0]
+        mysql_version                  = "8.0.21"
+        mysql_server_name              = "testmysqlserver"
+        zone                           = "1"
+        admin_username                 = "mysqlusern"
+        admin_password                 = "ba5yatgfgfhdsvvc6A3ns2lu4gqzzc"
+        sku_name                       = "GP_Standard_D8ds_v4"
+        db_name                        = "maindb"
+        charset                        = "utf8"
+        collation                      = "utf8_unicode_ci"
+        auto_grow_enabled              = true
+        iops                           = 360
+        size_gb                        = "20"
+        existing_private_dns_zone      = true
+        existing_private_dns_zone_id   = data.azurerm_private_dns_zone.main.id
+        existing_private_dns_zone_name = data.azurerm_private_dns_zone.main.name
+        ##azurerm_mysql_flexible_server_configuration
+        server_configuration_names = ["interactive_timeout", "audit_log_enabled"]
+        values                     = ["600", "ON"]
+      }
+  ```

@@ -1,0 +1,21 @@
+name: tf-checks
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  basic-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@1.2.1
+    with:
+      working_directory: './_example/basic/'
+
+  complete-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@1.2.1
+    with:
+      working_directory: './_example/complete/'
+
+  mysql-flexible-server-replication-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@1.2.1
+    with:
+      working_directory: './_example/mysql-flexible-server-replication/'

@@ -31,49 +31,40 @@ variable "managedby" {
 }
 
 variable "resource_group_name" {
-  description = "A container that holds related resources for an Azure solution"
+  type        = string
   default     = ""
+  description = "A container that holds related resources for an Azure solution"
 }
-
-
 
 variable "enabled" {
   type        = bool
-  description = "Set to false to prevent the module from creating any resources."
   default     = true
+  description = "Set to false to prevent the module from creating any resources."
 }
 
 variable "existing_private_dns_zone" {
   type        = bool
+  default     = false
   description = "Name of the existing private DNS zone"
-  default     = false
-}
-
-variable "enable_private_endpoint" {
-  description = "Manages a Private Endpoint to Azure database for MySQL"
-  default     = false
 }
 
 variable "registration_enabled" {
   type        = bool
-  description = "Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled"
   default     = false
+  description = "Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled"
 }
+
 ###########azurerm_mysql_flexible_server######
-
 variable "admin_username" {
-  description = "The administrator login name for the new SQL Server"
+  type        = string
   default     = null
+  description = "The administrator login name for the new SQL Server"
 }
 
-variable "mysql_server_name" {
-  type    = string
-  default = ""
-}
 variable "admin_password" {
   type        = string
-  description = "The password associated with the admin_username user"
   default     = null
+  description = "The password associated with the admin_username user"
 }
 
 variable "admin_password_length" {
@@ -89,9 +80,9 @@ variable "backup_retention_days" {
 }
 
 variable "delegated_subnet_id" {
-  description = "The resource ID of the subnet"
   type        = string
   default     = ""
+  description = "The resource ID of the subnet"
 }
 
 variable "sku_name" {
@@ -102,8 +93,8 @@ variable "sku_name" {
 
 variable "create_mode" {
   type        = string
-  description = "The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default`"
   default     = "Default"
+  description = "The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default`"
 }
 
 variable "geo_redundant_backup_enabled" {
@@ -142,44 +133,30 @@ variable "source_server_id" {
   description = "The resource ID of the source MySQL Flexible Server to be restored. Required when create_mode is PointInTimeRestore, GeoRestore, and Replica. Changing this forces a new MySQL Flexible Server to be created."
 }
 
-variable "start_ip_address" {
-  type    = string
-  default = ""
-}
-
-variable "end_ip_address" {
-  type    = string
-  default = ""
-}
-
 variable "virtual_network_id" {
   type        = string
-  description = "The name of the virtual network"
   default     = ""
+  description = "The name of the virtual network"
 }
 
 variable "key_vault_key_id" {
   type        = string
-  description = "The URL to a Key Vault Key"
   default     = null
+  description = "The URL to a Key Vault Key"
 }
-
-variable "key_vault_id" {
-  type        = string
-  default     = ""
-  description = "Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret"
-}
-
 
 variable "private_dns" {
-  type    = bool
-  default = false
+  type        = bool
+  default     = false
+  description = "The ID of the private DNS zone to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created."
 }
 
 variable "main_rg_name" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
+  description = "Specifies the resource group where the Private DNS Zone exists. Changing this forces a new resource to be created."
 }
+
 variable "location" {
   type        = string
   default     = ""
@@ -187,9 +164,11 @@ variable "location" {
 }
 
 variable "existing_private_dns_zone_id" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
+  description = "Id for existing private dns zone"
 }
+
 variable "existing_private_dns_zone_name" {
   type        = string
   default     = ""
@@ -201,6 +180,7 @@ variable "auto_grow_enabled" {
   default     = false
   description = "Should Storage Auto Grow be enabled? Defaults to true."
 }
+
 variable "iops" {
   type        = number
   default     = 360
@@ -212,6 +192,7 @@ variable "size_gb" {
   default     = "20"
   description = "The max storage allowed for the MySQL Flexible Server. Possible values are between 20 and 16384."
 }
+
 variable "db_name" {
   type        = string
   default     = ""
@@ -223,11 +204,13 @@ variable "charset" {
   default     = ""
   description = "Specifies the Charset for the MySQL Database, which needs to be a valid MySQL Charset. Changing this forces a new resource to be created."
 }
+
 variable "collation" {
   type        = string
   default     = ""
   description = "Specifies the Collation for the MySQL Database, which needs to be a valid MySQL Collation. Changing this forces a new resource to be created."
 }
+
 variable "server_configuration_names" {
   type        = list(string)
   default     = []
@@ -239,8 +222,8 @@ variable "values" {
   default     = []
   description = "Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created."
 }
+
 variable "high_availability" {
-  description = "Map of high availability configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-high-availability. `null` to disable high availability"
   type = object({
     mode                      = string
     standby_availability_zone = optional(number)
@@ -249,14 +232,14 @@ variable "high_availability" {
     mode                      = "SameZone"
     standby_availability_zone = 1
   }
+  description = "Map of high availability configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-high-availability. `null` to disable high availability"
 }
 
 variable "enable_diagnostic" {
   type        = bool
-  default     = true
+  default     = false
   description = "Set to false to prevent the module from creating any resources."
 }
-
 
 variable "log_analytics_workspace_id" {
   type        = string
@@ -298,4 +281,10 @@ variable "eventhub_authorization_rule_id" {
   type        = string
   default     = null
   description = "Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG."
+}
+
+variable "maintenance_window" {
+  type        = map(number)
+  default     = null
+  description = "Map of maintenance window configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-maintenance"
 }

@@ -8,7 +8,7 @@ locals {
   label_order = ["name", "environment"]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Resource Group module call
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
@@ -21,31 +21,31 @@ module "resource_group" {
   location    = "Central India"
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Virtual Network module call.
 ##-----------------------------------------------------------------------------
 module "vnet" {
   source              = "clouddrove/vnet/azure"
-  version             = "1.0.3"
+  version             = "1.0.4"
   name                = local.name
   environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
-  address_space       = "10.0.0.0/16"
+  address_spaces      = ["10.0.0.0/16"]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Subnet module call.
 ## Delegated subnet for mysql.
 ##-----------------------------------------------------------------------------
 module "subnet" {
   source               = "clouddrove/subnet/azure"
-  version              = "1.0.2"
+  version              = "1.1.0"
   name                 = local.name
   environment          = local.environment
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
-  virtual_network_name = join("", module.vnet.vnet_name)
+  virtual_network_name = module.vnet.vnet_name
   #subnet
   subnet_names      = ["default"]
   subnet_prefixes   = ["10.0.1.0/24"]
@@ -60,7 +60,7 @@ module "subnet" {
   }
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Log Analytics module call.
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
@@ -79,7 +79,7 @@ module "log-analytics" {
   log_analytics_workspace_location = module.resource_group.resource_group_location
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
@@ -89,15 +89,14 @@ module "flexible-mysql" {
   environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
-  virtual_network_id  = module.vnet.vnet_id[0]
+  virtual_network_id  = module.vnet.vnet_id
   delegated_subnet_id = module.subnet.default_subnet_id[0]
   mysql_version       = "8.0.21"
-  mysql_server_name   = "testmysqlserver"
   private_dns         = true
   zone                = "1"
   admin_username      = "mysqlusername"
   admin_password      = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
-  sku_name            = "GP_Standard_D8ds_v4"
+  sku_name            = "GP_Standard_D2ds_v4"
   db_name             = "maindb"
   charset             = "utf8mb3"
   collation           = "utf8mb3_unicode_ci"
@@ -105,6 +104,7 @@ module "flexible-mysql" {
   iops                = 360
   size_gb             = "20"
   ##azurerm_mysql_flexible_server_configuration
+  enable_diagnostic          = true
   server_configuration_names = ["interactive_timeout", "audit_log_enabled", "audit_log_events"]
   values                     = ["600", "ON", "CONNECTION,ADMIN,DDL,TABLE_ACCESS"]
   log_analytics_workspace_id = module.log-analytics.workspace_id
