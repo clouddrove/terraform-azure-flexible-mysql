@@ -165,7 +165,7 @@ variable "location" {
 
 variable "existing_private_dns_zone_id" {
   type        = string
-  default     = ""
+  default     = null
   description = "Id for existing private dns zone"
 }
 
@@ -271,6 +271,12 @@ variable "storage_account_id" {
   description = "Storage account id to pass it to destination details of diagnosys setting of NSG."
 }
 
+variable "login" {
+  type        = string
+  default     = "sqladmin"
+  description = "The login name of the principal to set as the server administrator"
+}
+
 variable "eventhub_name" {
   type        = string
   default     = null
@@ -287,4 +293,10 @@ variable "maintenance_window" {
   type        = map(number)
   default     = null
   description = "Map of maintenance window configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-maintenance"
+}
+
+variable "customer_managed_key" {
+  type        = list(string)
+  default     = null
+  description = "Map of customer_managed_key: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mysql_flexible_server#customer_managed_key `null` to disable high availability"
 }

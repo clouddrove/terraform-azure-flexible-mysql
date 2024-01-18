@@ -18,5 +18,8 @@ output "azurerm_private_dns_zone_id" {
   description = "The Private DNS Zone ID."
 }
 
-
+output "public_network_access_enabled" {
+  value       = module.flexible-mysql.public_network_access_enabled
+  description = "Is the public network access enabled."
+}
 

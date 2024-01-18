@@ -1,3 +1,5 @@
+data "azurerm_client_config" "current_client_config" {}
+
 ##-----------------------------------------------------------------------------
 ## Labels module callled that will be used for naming and tags.
 ##-----------------------------------------------------------------------------
@@ -68,11 +70,52 @@ resource "azurerm_mysql_flexible_server" "main" {
     }
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example[0].id]
+  }
+
+  dynamic "customer_managed_key" {
+    for_each = toset(var.customer_managed_key != null ? [
+      var.customer_managed_key
+    ] : [])
+
+    content {
+      key_vault_key_id                     = customer_managed_key.value.key_vault_key_id
+      primary_user_assigned_identity_id    = customer_managed_key.value.primary_user_assigned_identity_id
+      geo_backup_key_vault_key_id          = customer_managed_key.value.geo_backup_key_vault_key_id
+      geo_backup_user_assigned_identity_id = customer_managed_key.value.geo_backup_user_assigned_identity_id
+
+    }
+  }
+
   version = var.mysql_version
   zone    = var.zone
   tags    = module.labels.tags
 
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main, azurerm_private_dns_zone_virtual_network_link.main2]
+}
+
+##-----------------------------------------------------------------------------
+##A service principal of a special type is created in Microsoft Entra ID for the identity.
+##-----------------------------------------------------------------------------
+resource "azurerm_user_assigned_identity" "example" {
+  count               = var.enabled ? 1 : 0
+  name                = format("identity-%s", module.labels.id)
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
+##-----------------------------------------------------------------------------
+## Allows you to set a user or group as the AD administrator for an MySQL server in Azure
+##-----------------------------------------------------------------------------
+resource "azurerm_mysql_flexible_server_active_directory_administrator" "example" {
+  count       = var.enabled ? 1 : 0
+  server_id   = azurerm_mysql_flexible_server.main[0].id
+  identity_id = azurerm_user_assigned_identity.example[0].id
+  login       = var.login
+  object_id   = data.azurerm_client_config.current_client_config.object_id
+  tenant_id   = data.azurerm_client_config.current_client_config.tenant_id
 }
 
 ##-----------------------------------------------------------------------------
@@ -170,5 +213,8 @@ resource "azurerm_monitor_diagnostic_setting" "mysql" {
       category = metric.value
       enabled  = true
     }
+  }
+  lifecycle {
+    ignore_changes = [enabled_log, log_analytics_destination_type]
   }
 }
