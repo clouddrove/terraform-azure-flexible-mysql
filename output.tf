@@ -23,11 +23,17 @@ output "azurerm_private_dns_zone_id" {
   description = "The Private DNS Zone ID."
 }
 
-output "public_network_access_enabled" {
-  value       = azurerm_mysql_flexible_server.main[0].public_network_access_enabled
-  description = "Is the public network access enabled."
+output "client_id" {
+  value       = azurerm_user_assigned_identity.example[0].client_id
+  description = "The ID of the app associated with the Identity."
 }
 
+output "tenant_id" {
+  value       = azurerm_user_assigned_identity.example[0].tenant_id
+  description = "The ID of the app associated with the Identity."
+}
 
-
-
+output "ActiveDirectory_id" {
+  value       = azurerm_mysql_flexible_server_active_directory_administrator.example[0].id
+  description = "The ID of the MySQL Flexible Server Active Directory Administrator."
+}

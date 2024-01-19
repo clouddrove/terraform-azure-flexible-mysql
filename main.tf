@@ -30,16 +30,17 @@ resource "random_password" "main" {
 ## Below resource will create flexible mysql server in Azure environment.
 ##-----------------------------------------------------------------------------
 resource "azurerm_mysql_flexible_server" "main" {
-  count                             = var.enabled ? 1 : 0
-  name                              = format("%s-mysql-flexible-server", module.labels.id)
-  resource_group_name               = var.resource_group_name
-  location                          = var.location
-  administrator_login               = var.admin_username
-  administrator_password            = var.admin_password == null ? random_password.main[0].result : var.admin_password
-  backup_retention_days             = var.backup_retention_days
-  delegated_subnet_id               = var.delegated_subnet_id
-  private_dns_zone_id               = var.private_dns ? azurerm_private_dns_zone.main[0].id : var.existing_private_dns_zone_id
-  sku_name                          = var.sku_name
+  count                  = var.enabled ? 1 : 0
+  name                   = format("%s-mysql-flexible-server", module.labels.id)
+  resource_group_name    = var.resource_group_name
+  location               = var.location
+  administrator_login    = var.admin_username
+  administrator_password = var.admin_password == null ? random_password.main[0].result : var.admin_password
+  backup_retention_days  = var.backup_retention_days
+  delegated_subnet_id    = var.delegated_subnet_id
+  private_dns_zone_id    = var.private_dns ? azurerm_private_dns_zone.main[0].id : var.existing_private_dns_zone_id
+  sku_name               = var.sku_name
+  #  public_network_access_enabled = true
   create_mode                       = var.create_mode
   geo_redundant_backup_enabled      = var.geo_redundant_backup_enabled
   point_in_time_restore_time_in_utc = var.create_mode == "PointInTimeRestore" ? var.point_in_time_restore_time_in_utc : null
@@ -53,7 +54,6 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   dynamic "high_availability" {
     for_each = toset(var.high_availability != null ? [var.high_availability] : [])
-
     content {
       mode                      = high_availability.value.mode
       standby_availability_zone = lookup(high_availability.value, "standby_availability_zone", 1)
@@ -62,7 +62,6 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   dynamic "maintenance_window" {
     for_each = toset(var.maintenance_window != null ? [var.maintenance_window] : [])
-
     content {
       day_of_week  = lookup(maintenance_window.value, "day_of_week", 0)
       start_hour   = lookup(maintenance_window.value, "start_hour", 0)
@@ -79,7 +78,6 @@ resource "azurerm_mysql_flexible_server" "main" {
     for_each = toset(var.customer_managed_key != null ? [
       var.customer_managed_key
     ] : [])
-
     content {
       key_vault_key_id                     = customer_managed_key.value.key_vault_key_id
       primary_user_assigned_identity_id    = customer_managed_key.value.primary_user_assigned_identity_id
@@ -140,6 +138,18 @@ resource "azurerm_mysql_flexible_server_configuration" "main" {
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.main[0].name
   value               = element(var.values, count.index)
+}
+
+##-----------------------------------------------------------------------------
+## Manages a Firewall Rule for a MySQL Flexible Server.
+##-----------------------------------------------------------------------------
+resource "azurerm_mysql_flexible_server_firewall_rule" "example" {
+  count               = var.enabled && var.enable_firewall_rule ? 1 : 0
+  name                = format("%s-mysql-firewall-rule", module.labels.id)
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.main[0].name
+  start_ip_address    = var.start_ip_address
+  end_ip_address      = var.end_ip_address
 }
 
 ##------------------------------------------------------------------------

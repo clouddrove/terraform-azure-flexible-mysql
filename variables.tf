@@ -181,6 +181,12 @@ variable "auto_grow_enabled" {
   description = "Should Storage Auto Grow be enabled? Defaults to true."
 }
 
+variable "enable_firewall_rule" {
+  type        = bool
+  default     = false
+  description = "Add firewall_rule for mysql"
+}
+
 variable "iops" {
   type        = number
   default     = 360
@@ -299,4 +305,16 @@ variable "customer_managed_key" {
   type        = list(string)
   default     = null
   description = "Map of customer_managed_key: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mysql_flexible_server#customer_managed_key `null` to disable high availability"
+}
+
+variable "start_ip_address" {
+  type        = string
+  default     = "0.0.0.0"
+  description = "Specifies the Start IP Address associated with this Firewall Rule."
+}
+
+variable "end_ip_address" {
+  type        = string
+  default     = "0.0.0.0"
+  description = "Specifies the End IP Address associated with this Firewall Rule."
 }
