@@ -19,3 +19,8 @@ jobs:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@1.2.1
     with:
       working_directory: './_example/mysql-flexible-server-replication/'
+
+  public-flexible-mysql-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@1.2.1
+    with:
+      working_directory: './_example/public-flexible-mysql/'

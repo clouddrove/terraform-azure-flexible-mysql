@@ -30,17 +30,16 @@ resource "random_password" "main" {
 ## Below resource will create flexible mysql server in Azure environment.
 ##-----------------------------------------------------------------------------
 resource "azurerm_mysql_flexible_server" "main" {
-  count                  = var.enabled ? 1 : 0
-  name                   = format("%s-mysql-flexible-server", module.labels.id)
-  resource_group_name    = var.resource_group_name
-  location               = var.location
-  administrator_login    = var.admin_username
-  administrator_password = var.admin_password == null ? random_password.main[0].result : var.admin_password
-  backup_retention_days  = var.backup_retention_days
-  delegated_subnet_id    = var.delegated_subnet_id
-  private_dns_zone_id    = var.private_dns ? azurerm_private_dns_zone.main[0].id : var.existing_private_dns_zone_id
-  sku_name               = var.sku_name
-  #  public_network_access_enabled = true
+  count                             = var.enabled ? 1 : 0
+  name                              = format("%s-mysql-flexible-server", module.labels.id)
+  resource_group_name               = var.resource_group_name
+  location                          = var.location
+  administrator_login               = var.admin_username
+  administrator_password            = var.admin_password == null ? random_password.main[0].result : var.admin_password
+  backup_retention_days             = var.backup_retention_days
+  delegated_subnet_id               = var.delegated_subnet_id
+  private_dns_zone_id               = var.private_dns ? azurerm_private_dns_zone.main[0].id : var.existing_private_dns_zone_id
+  sku_name                          = var.sku_name
   create_mode                       = var.create_mode
   geo_redundant_backup_enabled      = var.geo_redundant_backup_enabled
   point_in_time_restore_time_in_utc = var.create_mode == "PointInTimeRestore" ? var.point_in_time_restore_time_in_utc : null
@@ -107,11 +106,11 @@ resource "azurerm_user_assigned_identity" "example" {
 ##-----------------------------------------------------------------------------
 ## Allows you to set a user or group as the AD administrator for an MySQL server in Azure
 ##-----------------------------------------------------------------------------
-resource "azurerm_mysql_flexible_server_active_directory_administrator" "example" {
+resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
   count       = var.enabled ? 1 : 0
   server_id   = azurerm_mysql_flexible_server.main[0].id
   identity_id = azurerm_user_assigned_identity.example[0].id
-  login       = var.login
+  login       = var.administrator_login_name
   object_id   = data.azurerm_client_config.current_client_config.object_id
   tenant_id   = data.azurerm_client_config.current_client_config.tenant_id
 }
@@ -143,7 +142,7 @@ resource "azurerm_mysql_flexible_server_configuration" "main" {
 ##-----------------------------------------------------------------------------
 ## Manages a Firewall Rule for a MySQL Flexible Server.
 ##-----------------------------------------------------------------------------
-resource "azurerm_mysql_flexible_server_firewall_rule" "example" {
+resource "azurerm_mysql_flexible_server_firewall_rule" "main" {
   count               = var.enabled && var.enable_firewall_rule ? 1 : 0
   name                = format("%s-mysql-firewall-rule", module.labels.id)
   resource_group_name = var.resource_group_name

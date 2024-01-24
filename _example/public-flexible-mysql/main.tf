@@ -22,45 +22,6 @@ module "resource_group" {
 }
 
 ##-----------------------------------------------------------------------------
-## Virtual Network module call.
-##-----------------------------------------------------------------------------
-module "vnet" {
-  source              = "clouddrove/vnet/azure"
-  version             = "1.0.4"
-  name                = local.name
-  environment         = local.environment
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
-  address_spaces      = ["10.0.0.0/16"]
-}
-
-##-----------------------------------------------------------------------------
-## Subnet module call.
-## Delegated subnet for mysql.
-##-----------------------------------------------------------------------------
-module "subnet" {
-  source               = "clouddrove/subnet/azure"
-  version              = "1.1.0"
-  name                 = local.name
-  environment          = local.environment
-  resource_group_name  = module.resource_group.resource_group_name
-  location             = module.resource_group.resource_group_location
-  virtual_network_name = module.vnet.vnet_name
-  #subnet
-  subnet_names      = ["default"]
-  subnet_prefixes   = ["10.0.1.0/24"]
-  service_endpoints = ["Microsoft.Storage"]
-  delegation = {
-    flexibleServers_delegation = [
-      {
-        name    = "Microsoft.DBforMySQL/flexibleServers"
-        actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      }
-    ]
-  }
-}
-
-##-----------------------------------------------------------------------------
 ## Log Analytics module call.
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
@@ -83,16 +44,12 @@ module "log-analytics" {
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
-  depends_on               = [module.resource_group, module.vnet]
   source                   = "../../"
   name                     = local.name
   environment              = local.environment
   resource_group_name      = module.resource_group.resource_group_name
   location                 = module.resource_group.resource_group_location
-  virtual_network_id       = module.vnet.vnet_id
-  delegated_subnet_id      = module.subnet.default_subnet_id[0]
   mysql_version            = "8.0.21"
-  private_dns              = true
   zone                     = "1"
   administrator_login_name = "sqladmin"
   admin_username           = "mysqlusername"
@@ -101,6 +58,7 @@ module "flexible-mysql" {
   db_name                  = "maindb"
   charset                  = "utf8mb3"
   collation                = "utf8mb3_unicode_ci"
+  enable_firewall_rule     = true
   auto_grow_enabled        = true
   iops                     = 360
   size_gb                  = "20"

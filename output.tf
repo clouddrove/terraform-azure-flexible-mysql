@@ -34,6 +34,16 @@ output "tenant_id" {
 }
 
 output "ActiveDirectory_id" {
-  value       = azurerm_mysql_flexible_server_active_directory_administrator.example[0].id
+  value       = azurerm_mysql_flexible_server_active_directory_administrator.main[0].id
   description = "The ID of the MySQL Flexible Server Active Directory Administrator."
+}
+
+output "server_fqdn" {
+  value       = azurerm_mysql_flexible_server.main[0].fqdn
+  description = "The fully qualified domain name of the MySQL Flexible Server."
+}
+
+output "public_network_access_enabled" {
+  value       = azurerm_mysql_flexible_server.main[0].public_network_access_enabled
+  description = "Is the public network access enabled."
 }

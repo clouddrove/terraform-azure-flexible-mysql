@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 locals {
-  name        = "azure"
+  name        = "app"
   environment = "test"
   label_order = ["name", "environment"]
 }

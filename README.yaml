@@ -97,11 +97,11 @@ usage: |-
 
   ##mysql-flexible-server-replication
   ```hcl
-    module "flexible-mysql" {
-       source                          = "clouddrove/flexible-mysql/azure"
-       name                            = "app"
-       environment                     = "test"
-       label_order                     = ["environment", "name"]
+     module "flexible-mysql" {
+        source                          = "clouddrove/flexible-mysql/azure"
+        name                            = "app"
+        environment                     = "test"
+        label_order                     = ["environment", "name"]
         main_rg_name                   = data.azurerm_resource_group.main.name
         resource_group_name            = module.resource_group.resource_group_name
         location                       = module.resource_group.resource_group_location
@@ -125,5 +125,34 @@ usage: |-
         ##azurerm_mysql_flexible_server_configuration
         server_configuration_names = ["interactive_timeout", "audit_log_enabled"]
         values                     = ["600", "ON"]
-      }
+     }
+  ```
+
+  ##mysql-flexible-server-replication
+  ```hcl
+    module "flexible-mysql" {
+      source               = "clouddrove/flexible-mysql/azure"
+      name                 = "app"
+      environment          = "test"
+      label_order          = ["environment", "name"]
+      resource_group_name  = module.resource_group.resource_group_name
+      location             = module.resource_group.resource_group_location
+      mysql_version        = "8.0.21"
+      zone                 = "1"
+      admin_username       = "mysqlusername"
+      admin_password       = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
+      sku_name             = "GP_Standard_D2ds_v4"
+      db_name              = "maindb"
+      charset              = "utf8mb3"
+      collation            = "utf8mb3_unicode_ci"
+      enable_firewall_rule = true
+      auto_grow_enabled    = true
+      iops                 = 360
+      size_gb              = "20"
+      ##azurerm_mysql_flexible_server_configuration
+      enable_diagnostic          = true
+      server_configuration_names = ["interactive_timeout", "audit_log_enabled", "audit_log_events"]
+      values                     = ["600", "ON", "CONNECTION,ADMIN,DDL,TABLE_ACCESS"]
+      log_analytics_workspace_id = module.log-analytics.workspace_id
+    }
   ```

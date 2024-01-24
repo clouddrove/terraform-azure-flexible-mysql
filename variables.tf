@@ -81,7 +81,7 @@ variable "backup_retention_days" {
 
 variable "delegated_subnet_id" {
   type        = string
-  default     = ""
+  default     = null
   description = "The resource ID of the subnet"
 }
 
@@ -91,7 +91,8 @@ variable "sku_name" {
   description = " The SKU Name for the MySQL Flexible Server."
 }
 
-variable "create_mode" {
+variable "create_mode" { ###########azurerm_mysql_flexible_server######
+
   type        = string
   default     = "Default"
   description = "The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default`"
@@ -135,7 +136,7 @@ variable "source_server_id" {
 
 variable "virtual_network_id" {
   type        = string
-  default     = ""
+  default     = null
   description = "The name of the virtual network"
 }
 
@@ -277,7 +278,7 @@ variable "storage_account_id" {
   description = "Storage account id to pass it to destination details of diagnosys setting of NSG."
 }
 
-variable "login" {
+variable "administrator_login_name" {
   type        = string
   default     = "sqladmin"
   description = "The login name of the principal to set as the server administrator"
@@ -315,6 +316,6 @@ variable "start_ip_address" {
 
 variable "end_ip_address" {
   type        = string
-  default     = "0.0.0.0"
+  default     = "255.255.255.255"
   description = "Specifies the End IP Address associated with this Firewall Rule."
 }
