@@ -91,21 +91,20 @@ module "flexible-mysql" {
   location                       = module.resource_group.resource_group_location
   virtual_network_id             = module.vnet.vnet_id
   delegated_subnet_id            = module.subnet.default_subnet_id[0]
+  database_names                 = ["database1", "database2"]
   mysql_version                  = "8.0.21"
   zone                           = "1"
   admin_username                 = "mysqlusern"
   admin_password                 = "ba5yatgfgfhdsvvc6A3ns2lu4gqzzc"
   sku_name                       = "GP_Standard_D2ds_v4"
-  db_name                        = "maindb"
   charset                        = "utf8"
   collation                      = "utf8_unicode_ci"
+  enabled_user_assigned_identity = true
   auto_grow_enabled              = true
-  iops                           = 360
-  size_gb                        = "20"
   existing_private_dns_zone      = true
   existing_private_dns_zone_id   = data.azurerm_private_dns_zone.main.id
   existing_private_dns_zone_name = data.azurerm_private_dns_zone.main.name
-  ##azurerm_mysql_flexible_server_configuration
+  ## server_configuration
   server_configuration_names = ["interactive_timeout", "audit_log_enabled"]
   values                     = ["600", "ON"]
 }

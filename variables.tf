@@ -54,7 +54,6 @@ variable "registration_enabled" {
   description = "Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled"
 }
 
-###########azurerm_mysql_flexible_server######
 variable "admin_username" {
   type        = string
   default     = null
@@ -91,8 +90,7 @@ variable "sku_name" {
   description = " The SKU Name for the MySQL Flexible Server."
 }
 
-variable "create_mode" { ###########azurerm_mysql_flexible_server######
-
+variable "create_mode" {
   type        = string
   default     = "Default"
   description = "The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default`"
@@ -143,7 +141,7 @@ variable "virtual_network_id" {
 variable "key_vault_key_id" {
   type        = string
   default     = null
-  description = "The URL to a Key Vault Key"
+  description = "The ID to a Key Vault Key"
 }
 
 variable "private_dns" {
@@ -200,21 +198,21 @@ variable "size_gb" {
   description = "The max storage allowed for the MySQL Flexible Server. Possible values are between 20 and 16384."
 }
 
-variable "db_name" {
-  type        = string
-  default     = ""
+variable "database_names" {
+  type        = list(string)
+  default     = ["database1", "database2", "database3"]
   description = "Specifies the name of the MySQL Database, which needs to be a valid MySQL identifier. Changing this forces a new resource to be created."
 }
 
 variable "charset" {
   type        = string
-  default     = ""
+  default     = "utf8mb3"
   description = "Specifies the Charset for the MySQL Database, which needs to be a valid MySQL Charset. Changing this forces a new resource to be created."
 }
 
 variable "collation" {
   type        = string
-  default     = ""
+  default     = "utf8mb3_unicode_ci"
   description = "Specifies the Collation for the MySQL Database, which needs to be a valid MySQL Collation. Changing this forces a new resource to be created."
 }
 
@@ -318,4 +316,24 @@ variable "end_ip_address" {
   type        = string
   default     = "255.255.255.255"
   description = "Specifies the End IP Address associated with this Firewall Rule."
+}
+
+variable "user_object_id" {
+  type = map(object({
+    object_id = string
+  }))
+  default     = {}
+  description = "The ID of the principal to set as the server administrator. For a managed identity this should be the Client ID of the identity."
+}
+
+variable "identity_ids" {
+  type        = string
+  default     = null
+  description = "A list of User Assigned Managed Identity IDs to be assigned to this MySQL Flexible Server."
+}
+
+variable "enabled_user_assigned_identity" {
+  type        = bool
+  default     = false
+  description = "A service principal of a special type is created in Microsoft Entra ID for the identity"
 }

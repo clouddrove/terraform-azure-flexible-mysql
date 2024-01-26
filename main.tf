@@ -70,7 +70,7 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.example[0].id]
+    identity_ids = var.identity_ids == null ? azurerm_user_assigned_identity.example[*].id : var.identity_ids[0]
   }
 
   dynamic "customer_managed_key" {
@@ -97,8 +97,8 @@ resource "azurerm_mysql_flexible_server" "main" {
 ##A service principal of a special type is created in Microsoft Entra ID for the identity.
 ##-----------------------------------------------------------------------------
 resource "azurerm_user_assigned_identity" "example" {
-  count               = var.enabled ? 1 : 0
-  name                = format("identity-%s", module.labels.id)
+  count               = var.enabled && var.enabled_user_assigned_identity ? 1 : 0
+  name                = format("mysql-identity-%s", module.labels.id)
   resource_group_name = var.resource_group_name
   location            = var.location
 }
@@ -107,11 +107,11 @@ resource "azurerm_user_assigned_identity" "example" {
 ## Allows you to set a user or group as the AD administrator for an MySQL server in Azure
 ##-----------------------------------------------------------------------------
 resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
-  count       = var.enabled ? 1 : 0
+  for_each    = var.enabled ? var.user_object_id : {}
   server_id   = azurerm_mysql_flexible_server.main[0].id
-  identity_id = azurerm_user_assigned_identity.example[0].id
+  identity_id = var.identity_ids == null ? azurerm_user_assigned_identity.example[0].id : var.identity_ids[0]
   login       = var.administrator_login_name
-  object_id   = data.azurerm_client_config.current_client_config.object_id
+  object_id   = lookup(each.value, "object_id", "")
   tenant_id   = data.azurerm_client_config.current_client_config.tenant_id
 }
 
@@ -119,8 +119,8 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
 ## Below resource will create mysql flexible database.
 ##-----------------------------------------------------------------------------
 resource "azurerm_mysql_flexible_database" "main" {
-  count               = var.enabled ? 1 : 0
-  name                = var.db_name
+  for_each            = var.enabled ? toset(var.database_names) : []
+  name                = each.value
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.main[0].name
   charset             = var.charset
@@ -156,7 +156,7 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "main" {
 ##------------------------------------------------------------------------
 resource "azurerm_mysql_server_key" "main" {
   count            = var.enabled && var.key_vault_key_id != null ? 1 : 0
-  server_id        = join("", azurerm_mysql_flexible_server.main[0].id)
+  server_id        = azurerm_mysql_flexible_server.main[0].id
   key_vault_key_id = var.key_vault_key_id
 }
 

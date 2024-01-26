@@ -1,5 +1,5 @@
 output "mysql_flexible_server_id" {
-  value       = azurerm_mysql_flexible_server.main[*].id
+  value       = azurerm_mysql_flexible_server.main[0].id
   description = "The ID of the MySQL Flexible Server."
 }
 
@@ -33,11 +33,6 @@ output "tenant_id" {
   description = "The ID of the app associated with the Identity."
 }
 
-output "ActiveDirectory_id" {
-  value       = azurerm_mysql_flexible_server_active_directory_administrator.main[0].id
-  description = "The ID of the MySQL Flexible Server Active Directory Administrator."
-}
-
 output "server_fqdn" {
   value       = azurerm_mysql_flexible_server.main[0].fqdn
   description = "The fully qualified domain name of the MySQL Flexible Server."
@@ -46,4 +41,9 @@ output "server_fqdn" {
 output "public_network_access_enabled" {
   value       = azurerm_mysql_flexible_server.main[0].public_network_access_enabled
   description = "Is the public network access enabled."
+}
+
+output "administrator_password" {
+  value       = azurerm_mysql_flexible_server.main[0].administrator_password
+  description = "The Password associated with the administrator_login for the MySQL Flexible Server. Required when create_mode is Default."
 }

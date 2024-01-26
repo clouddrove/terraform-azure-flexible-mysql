@@ -2,6 +2,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current_client_config" {}
+
 locals {
   name        = "app"
   environment = "test"
@@ -44,25 +46,29 @@ module "log-analytics" {
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
-  source                   = "../../"
-  name                     = local.name
-  environment              = local.environment
-  resource_group_name      = module.resource_group.resource_group_name
-  location                 = module.resource_group.resource_group_location
-  mysql_version            = "8.0.21"
-  zone                     = "1"
-  administrator_login_name = "sqladmin"
-  admin_username           = "mysqlusername"
-  admin_password           = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
-  sku_name                 = "GP_Standard_D2ds_v4"
-  db_name                  = "maindb"
-  charset                  = "utf8mb3"
-  collation                = "utf8mb3_unicode_ci"
-  enable_firewall_rule     = true
-  auto_grow_enabled        = true
-  iops                     = 360
-  size_gb                  = "20"
-  ##azurerm_mysql_flexible_server_configuration
+  source                         = "../../"
+  name                           = local.name
+  environment                    = local.environment
+  resource_group_name            = module.resource_group.resource_group_name
+  location                       = module.resource_group.resource_group_location
+  mysql_version                  = "8.0.21"
+  zone                           = "1"
+  administrator_login_name       = "sqladmin"
+  admin_username                 = "mysqlusername"
+  admin_password                 = "eI37N9pmiArUR31j"
+  sku_name                       = "GP_Standard_D2ds_v4"
+  database_names                 = ["database1", "database2"]
+  enabled_user_assigned_identity = true
+  enable_firewall_rule           = true
+  start_ip_address               = "0.0.0.0"
+  end_ip_address                 = "255.255.255.255"
+  auto_grow_enabled              = true
+  user_object_id = {
+    "user1" = {
+      object_id = data.azurerm_client_config.current_client_config.object_id
+    },
+  }
+  #### enable diagnostic setting and server_configuration
   enable_diagnostic          = true
   server_configuration_names = ["interactive_timeout", "audit_log_enabled", "audit_log_events"]
   values                     = ["600", "ON", "CONNECTION,ADMIN,DDL,TABLE_ACCESS"]
