@@ -68,21 +68,19 @@ resource "azurerm_mysql_flexible_server" "main" {
     }
   }
 
-  identity {
-    type         = "UserAssigned"
-    identity_ids = var.identity_ids == null ? azurerm_user_assigned_identity.example[*].id : var.identity_ids[0]
+  dynamic "identity" {
+    for_each = var.cmk_encryption_enabled && var.identity_type != null ? [1] : []
+    content {
+      type         = var.identity_type
+      identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity.*.id)] : null
+    }
   }
 
   dynamic "customer_managed_key" {
-    for_each = toset(var.customer_managed_key != null ? [
-      var.customer_managed_key
-    ] : [])
+    for_each = var.cmk_encryption_enabled ? [1] : []
     content {
-      key_vault_key_id                     = customer_managed_key.value.key_vault_key_id
-      primary_user_assigned_identity_id    = customer_managed_key.value.primary_user_assigned_identity_id
-      geo_backup_key_vault_key_id          = customer_managed_key.value.geo_backup_key_vault_key_id
-      geo_backup_user_assigned_identity_id = customer_managed_key.value.geo_backup_user_assigned_identity_id
-
+      key_vault_key_id                  = var.key_vault_id != null ? azurerm_key_vault_key.kvkey[0].id : null
+      primary_user_assigned_identity_id = var.key_vault_id != null ? azurerm_user_assigned_identity.identity[0].id : null
     }
   }
 
@@ -96,11 +94,65 @@ resource "azurerm_mysql_flexible_server" "main" {
 ##-----------------------------------------------------------------------------
 ##A service principal of a special type is created in Microsoft Entra ID for the identity.
 ##-----------------------------------------------------------------------------
-resource "azurerm_user_assigned_identity" "example" {
+resource "azurerm_user_assigned_identity" "identity" {
   count               = var.enabled && var.enabled_user_assigned_identity ? 1 : 0
   name                = format("mysql-identity-%s", module.labels.id)
   resource_group_name = var.resource_group_name
   location            = var.location
+}
+#
+###-----------------------------------------------------------------------------
+### Below resource will provide user access on key vault based on role base access in azure environment.
+### if rbac is enabled then below resource will create.
+###-----------------------------------------------------------------------------
+resource "azurerm_role_assignment" "rbac_keyvault_crypto_officer" {
+  for_each             = toset(var.enabled && var.cmk_encryption_enabled ? var.admin_objects_ids : [])
+  scope                = var.key_vault_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = each.value
+}
+
+###-----------------------------------------------------------------------------
+### Below resource will assign 'Key Vault Crypto Service Encryption User' role to user assigned identity created above.
+###-----------------------------------------------------------------------------
+resource "azurerm_role_assignment" "identity_assigned" {
+  depends_on           = [azurerm_user_assigned_identity.identity]
+  count                = var.enabled && var.cmk_encryption_enabled ? 1 : 0
+  principal_id         = azurerm_user_assigned_identity.identity[0].principal_id
+  scope                = var.key_vault_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+}
+
+###-----------------------------------------------------------------------------
+### Below resource will create key vault key that will be used for encryption.
+###-----------------------------------------------------------------------------
+resource "azurerm_key_vault_key" "kvkey" {
+  depends_on      = [azurerm_role_assignment.identity_assigned, azurerm_role_assignment.rbac_keyvault_crypto_officer]
+  count           = var.enabled && var.cmk_encryption_enabled ? 1 : 0
+  name            = format("%s-mysql-kv-key", module.labels.id)
+  expiration_date = var.expiration_date
+  key_vault_id    = var.key_vault_id
+  key_type        = "RSA"
+  key_size        = 2048
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+  dynamic "rotation_policy" {
+    for_each = var.rotation_policy != null ? var.rotation_policy : {}
+    content {
+      automatic {
+        time_before_expiry = rotation_policy.value.time_before_expiry
+      }
+
+      expire_after         = rotation_policy.value.expire_after
+      notify_before_expiry = rotation_policy.value.notify_before_expiry
+    }
+  }
 }
 
 ##-----------------------------------------------------------------------------
@@ -109,7 +161,7 @@ resource "azurerm_user_assigned_identity" "example" {
 resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
   for_each    = var.enabled ? var.user_object_id : {}
   server_id   = azurerm_mysql_flexible_server.main[0].id
-  identity_id = var.identity_ids == null ? azurerm_user_assigned_identity.example[0].id : var.identity_ids[0]
+  identity_id = var.identity_ids == null ? azurerm_user_assigned_identity.identity[0].id : var.identity_ids[0]
   login       = var.administrator_login_name
   object_id   = lookup(each.value, "object_id", "")
   tenant_id   = data.azurerm_client_config.current_client_config.tenant_id

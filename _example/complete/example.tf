@@ -82,6 +82,27 @@ module "log-analytics" {
 }
 
 ##-----------------------------------------------------------------------------
+## Key Vault module call.
+##-----------------------------------------------------------------------------
+module "vault" {
+  source                      = "clouddrove/key-vault/azure"
+  version                     = "1.1.0"
+  name                        = "mysql0011"
+  environment                 = "test"
+  label_order                 = ["name", "environment", ]
+  resource_group_name         = module.resource_group.resource_group_name
+  location                    = module.resource_group.resource_group_location
+  admin_objects_ids           = [data.azurerm_client_config.current_client_config.object_id]
+  virtual_network_id          = module.vnet.vnet_id
+  subnet_id                   = module.subnet.default_subnet_id[0]
+  enable_rbac_authorization   = true
+  enabled_for_disk_encryption = false
+  #private endpoint
+  enable_private_endpoint = false
+  network_acls            = null
+}
+
+##-----------------------------------------------------------------------------
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
@@ -93,21 +114,25 @@ module "flexible-mysql" {
   location                       = module.resource_group.resource_group_location
   virtual_network_id             = module.vnet.vnet_id
   delegated_subnet_id            = module.subnet.default_subnet_id[0]
-  mysql_version                  = "8.0.21"
+  cmk_encryption_enabled         = true
   private_dns                    = true
+  auto_grow_enabled              = true
+  enabled_user_assigned_identity = true
+  mysql_version                  = "8.0.21"
   zone                           = "1"
   database_names                 = ["database1", "database2"]
   administrator_login_name       = "sqladmin"
   admin_username                 = "mysqlusername"
   admin_password                 = "eI37N9pmiArUR31j"
   sku_name                       = "GP_Standard_D2ds_v4"
-  auto_grow_enabled              = true
-  enabled_user_assigned_identity = true
+
   user_object_id = {
     "user1" = {
       object_id = data.azurerm_client_config.current_client_config.object_id
     },
   }
+  key_vault_id      = module.vault.id
+  admin_objects_ids = [data.azurerm_client_config.current_client_config.object_id]
   #### enable diagnostic setting
   enable_diagnostic          = true
   server_configuration_names = ["interactive_timeout", "audit_log_enabled", "audit_log_events"]

@@ -98,7 +98,7 @@ variable "create_mode" {
 
 variable "geo_redundant_backup_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "Should geo redundant backup enabled? Defaults to false. Changing this forces a new MySQL Flexible Server to be created."
 }
 
@@ -300,12 +300,6 @@ variable "maintenance_window" {
   description = "Map of maintenance window configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-maintenance"
 }
 
-variable "customer_managed_key" {
-  type        = list(string)
-  default     = null
-  description = "Map of customer_managed_key: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mysql_flexible_server#customer_managed_key `null` to disable high availability"
-}
-
 variable "start_ip_address" {
   type        = string
   default     = "0.0.0.0"
@@ -336,4 +330,44 @@ variable "enabled_user_assigned_identity" {
   type        = bool
   default     = false
   description = "A service principal of a special type is created in Microsoft Entra ID for the identity"
+}
+
+variable "cmk_encryption_enabled" {
+  type        = bool
+  default     = false
+  description = "Enanle or Disable Database encryption with Customer Manage Key"
+}
+
+variable "admin_objects_ids" {
+  type        = list(string)
+  default     = []
+  description = "IDs of the objects that can do all operations on all keys, secrets and certificates."
+}
+
+variable "key_vault_id" {
+  type        = string
+  default     = ""
+  description = "Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret"
+}
+
+variable "expiration_date" {
+  type        = string
+  default     = "2024-05-22T18:29:59Z"
+  description = "Expiration UTC datetime (Y-m-d'T'H:M:S'Z')"
+}
+
+variable "rotation_policy" {
+  type = map(object({
+    time_before_expiry   = string
+    expire_after         = string
+    notify_before_expiry = string
+  }))
+  default     = null
+  description = "The rotation policy for azure key vault key"
+}
+
+variable "identity_type" {
+  type        = string
+  default     = "UserAssigned"
+  description = "Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both)."
 }

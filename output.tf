@@ -24,12 +24,12 @@ output "azurerm_private_dns_zone_id" {
 }
 
 output "client_id" {
-  value       = azurerm_user_assigned_identity.example[0].client_id
+  value       = azurerm_user_assigned_identity.identity[0].client_id
   description = "The ID of the app associated with the Identity."
 }
 
 output "tenant_id" {
-  value       = azurerm_user_assigned_identity.example[0].tenant_id
+  value       = azurerm_user_assigned_identity.identity[0].tenant_id
   description = "The ID of the app associated with the Identity."
 }
 
