@@ -72,7 +72,7 @@ resource "azurerm_mysql_flexible_server" "main" {
     for_each = var.cmk_encryption_enabled && var.identity_type != null ? [1] : []
     content {
       type         = var.identity_type
-      identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity.*.id)] : null
+      identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity[*].id)] : null
     }
   }
 
@@ -100,7 +100,7 @@ resource "azurerm_user_assigned_identity" "identity" {
   resource_group_name = var.resource_group_name
   location            = var.location
 }
-#
+
 ###-----------------------------------------------------------------------------
 ### Below resource will provide user access on key vault based on role base access in azure environment.
 ### if rbac is enabled then below resource will create.
@@ -108,7 +108,7 @@ resource "azurerm_user_assigned_identity" "identity" {
 resource "azurerm_role_assignment" "rbac_keyvault_crypto_officer" {
   for_each             = toset(var.enabled && var.cmk_encryption_enabled ? var.admin_objects_ids : [])
   scope                = var.key_vault_id
-  role_definition_name = "Key Vault Crypto Service Encryption User"
+  role_definition_name = "Key Vault Crypto Officer"
   principal_id         = each.value
 }
 

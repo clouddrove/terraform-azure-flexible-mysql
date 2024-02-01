@@ -87,7 +87,7 @@ module "log-analytics" {
 module "vault" {
   source                      = "clouddrove/key-vault/azure"
   version                     = "1.1.0"
-  name                        = "mysql0011"
+  name                        = "mysql3311"
   environment                 = "test"
   label_order                 = ["name", "environment", ]
   resource_group_name         = module.resource_group.resource_group_name
