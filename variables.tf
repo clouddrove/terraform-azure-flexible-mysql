@@ -31,49 +31,39 @@ variable "managedby" {
 }
 
 variable "resource_group_name" {
-  description = "A container that holds related resources for an Azure solution"
+  type        = string
   default     = ""
+  description = "A container that holds related resources for an Azure solution"
 }
-
-
 
 variable "enabled" {
   type        = bool
-  description = "Set to false to prevent the module from creating any resources."
   default     = true
+  description = "Set to false to prevent the module from creating any resources."
 }
 
 variable "existing_private_dns_zone" {
   type        = bool
+  default     = false
   description = "Name of the existing private DNS zone"
-  default     = false
-}
-
-variable "enable_private_endpoint" {
-  description = "Manages a Private Endpoint to Azure database for MySQL"
-  default     = false
 }
 
 variable "registration_enabled" {
   type        = bool
-  description = "Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled"
   default     = false
+  description = "Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled"
 }
-###########azurerm_mysql_flexible_server######
 
 variable "admin_username" {
-  description = "The administrator login name for the new SQL Server"
+  type        = string
   default     = null
+  description = "The administrator login name for the new SQL Server"
 }
 
-variable "mysql_server_name" {
-  type    = string
-  default = ""
-}
 variable "admin_password" {
   type        = string
-  description = "The password associated with the admin_username user"
   default     = null
+  description = "The password associated with the admin_username user"
 }
 
 variable "admin_password_length" {
@@ -89,9 +79,9 @@ variable "backup_retention_days" {
 }
 
 variable "delegated_subnet_id" {
-  description = "The resource ID of the subnet"
   type        = string
-  default     = ""
+  default     = null
+  description = "The resource ID of the subnet"
 }
 
 variable "sku_name" {
@@ -102,13 +92,13 @@ variable "sku_name" {
 
 variable "create_mode" {
   type        = string
-  description = "The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default`"
   default     = "Default"
+  description = "The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default`"
 }
 
 variable "geo_redundant_backup_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "Should geo redundant backup enabled? Defaults to false. Changing this forces a new MySQL Flexible Server to be created."
 }
 
@@ -142,44 +132,30 @@ variable "source_server_id" {
   description = "The resource ID of the source MySQL Flexible Server to be restored. Required when create_mode is PointInTimeRestore, GeoRestore, and Replica. Changing this forces a new MySQL Flexible Server to be created."
 }
 
-variable "start_ip_address" {
-  type    = string
-  default = ""
-}
-
-variable "end_ip_address" {
-  type    = string
-  default = ""
-}
-
 variable "virtual_network_id" {
   type        = string
+  default     = null
   description = "The name of the virtual network"
-  default     = ""
 }
 
 variable "key_vault_key_id" {
   type        = string
-  description = "The URL to a Key Vault Key"
   default     = null
+  description = "The ID to a Key Vault Key"
 }
-
-variable "key_vault_id" {
-  type        = string
-  default     = ""
-  description = "Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret"
-}
-
 
 variable "private_dns" {
-  type    = bool
-  default = false
+  type        = bool
+  default     = false
+  description = "The ID of the private DNS zone to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created."
 }
 
 variable "main_rg_name" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
+  description = "Specifies the resource group where the Private DNS Zone exists. Changing this forces a new resource to be created."
 }
+
 variable "location" {
   type        = string
   default     = ""
@@ -187,9 +163,11 @@ variable "location" {
 }
 
 variable "existing_private_dns_zone_id" {
-  type    = string
-  default = ""
+  type        = string
+  default     = null
+  description = "Id for existing private dns zone"
 }
+
 variable "existing_private_dns_zone_name" {
   type        = string
   default     = ""
@@ -201,6 +179,13 @@ variable "auto_grow_enabled" {
   default     = false
   description = "Should Storage Auto Grow be enabled? Defaults to true."
 }
+
+variable "enable_firewall_rule" {
+  type        = bool
+  default     = false
+  description = "Add firewall_rule for mysql"
+}
+
 variable "iops" {
   type        = number
   default     = 360
@@ -212,22 +197,25 @@ variable "size_gb" {
   default     = "20"
   description = "The max storage allowed for the MySQL Flexible Server. Possible values are between 20 and 16384."
 }
-variable "db_name" {
-  type        = string
-  default     = ""
+
+variable "database_names" {
+  type        = list(string)
+  default     = ["database1", "database2", "database3"]
   description = "Specifies the name of the MySQL Database, which needs to be a valid MySQL identifier. Changing this forces a new resource to be created."
 }
 
 variable "charset" {
   type        = string
-  default     = ""
+  default     = "utf8mb3"
   description = "Specifies the Charset for the MySQL Database, which needs to be a valid MySQL Charset. Changing this forces a new resource to be created."
 }
+
 variable "collation" {
   type        = string
-  default     = ""
+  default     = "utf8mb3_unicode_ci"
   description = "Specifies the Collation for the MySQL Database, which needs to be a valid MySQL Collation. Changing this forces a new resource to be created."
 }
+
 variable "server_configuration_names" {
   type        = list(string)
   default     = []
@@ -239,8 +227,8 @@ variable "values" {
   default     = []
   description = "Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created."
 }
+
 variable "high_availability" {
-  description = "Map of high availability configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-high-availability. `null` to disable high availability"
   type = object({
     mode                      = string
     standby_availability_zone = optional(number)
@@ -249,14 +237,14 @@ variable "high_availability" {
     mode                      = "SameZone"
     standby_availability_zone = 1
   }
+  description = "Map of high availability configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-high-availability. `null` to disable high availability"
 }
 
 variable "enable_diagnostic" {
   type        = bool
-  default     = true
+  default     = false
   description = "Set to false to prevent the module from creating any resources."
 }
-
 
 variable "log_analytics_workspace_id" {
   type        = string
@@ -288,6 +276,12 @@ variable "storage_account_id" {
   description = "Storage account id to pass it to destination details of diagnosys setting of NSG."
 }
 
+variable "administrator_login_name" {
+  type        = string
+  default     = "sqladmin"
+  description = "The login name of the principal to set as the server administrator"
+}
+
 variable "eventhub_name" {
   type        = string
   default     = null
@@ -298,4 +292,82 @@ variable "eventhub_authorization_rule_id" {
   type        = string
   default     = null
   description = "Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG."
+}
+
+variable "maintenance_window" {
+  type        = map(number)
+  default     = null
+  description = "Map of maintenance window configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-maintenance"
+}
+
+variable "start_ip_address" {
+  type        = string
+  default     = "0.0.0.0"
+  description = "Specifies the Start IP Address associated with this Firewall Rule."
+}
+
+variable "end_ip_address" {
+  type        = string
+  default     = "255.255.255.255"
+  description = "Specifies the End IP Address associated with this Firewall Rule."
+}
+
+variable "user_object_id" {
+  type = map(object({
+    object_id = string
+  }))
+  default     = {}
+  description = "The ID of the principal to set as the server administrator. For a managed identity this should be the Client ID of the identity."
+}
+
+variable "identity_ids" {
+  type        = string
+  default     = null
+  description = "A list of User Assigned Managed Identity IDs to be assigned to this MySQL Flexible Server."
+}
+
+variable "enabled_user_assigned_identity" {
+  type        = bool
+  default     = false
+  description = "A service principal of a special type is created in Microsoft Entra ID for the identity"
+}
+
+variable "cmk_encryption_enabled" {
+  type        = bool
+  default     = false
+  description = "Enanle or Disable Database encryption with Customer Manage Key"
+}
+
+variable "admin_objects_ids" {
+  type        = list(string)
+  default     = []
+  description = "IDs of the objects that can do all operations on all keys, secrets and certificates."
+}
+
+variable "key_vault_id" {
+  type        = string
+  default     = ""
+  description = "Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret"
+}
+
+variable "expiration_date" {
+  type        = string
+  default     = "2024-05-22T18:29:59Z"
+  description = "Expiration UTC datetime (Y-m-d'T'H:M:S'Z')"
+}
+
+variable "rotation_policy" {
+  type = map(object({
+    time_before_expiry   = string
+    expire_after         = string
+    notify_before_expiry = string
+  }))
+  default     = null
+  description = "The rotation policy for azure key vault key"
+}
+
+variable "identity_type" {
+  type        = string
+  default     = "UserAssigned"
+  description = "Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both)."
 }
