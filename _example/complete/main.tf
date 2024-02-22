@@ -4,7 +4,7 @@ provider "azurerm" {
 
 locals {
   name        = "app"
-  environment = "help"
+  environment = "test"
   label_order = ["name", "environment"]
 }
 
