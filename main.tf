@@ -58,6 +58,13 @@ resource "azurerm_mysql_flexible_server" "main" {
   point_in_time_restore_time_in_utc = var.create_mode == "PointInTimeRestore" ? var.point_in_time_restore_time_in_utc : null
   replication_role                  = var.replication_role
   source_server_id                  = var.create_mode == "PointInTimeRestore" ? var.source_server_id : null
+
+  dynamic "customer_managed_key" {
+    for_each = var.key_vault_key_id != null ? [var.key_vault_key_id] : []
+    content {
+      key_vault_key_id = customer_managed_key.value
+    }
+  }
   storage {
     auto_grow_enabled = var.auto_grow_enabled
     iops              = var.iops
@@ -108,12 +115,10 @@ resource "azurerm_mysql_flexible_server_configuration" "main" {
 
 ##------------------------------------------------------------------------
 ## Manages a Customer Managed Key for a MySQL Server. - Default is "false"
-##------------------------------------------------------------------------
-resource "azurerm_mysql_server_key" "main" {
-  count            = var.enabled && var.key_vault_key_id != null ? 1 : 0
-  server_id        = join("", azurerm_mysql_flexible_server.main.*.id)
-  key_vault_key_id = var.key_vault_key_id
-}
+# ##------------------------------------------------------------------------
+#resource got deprecated, so passed as customer_managed_key in dynamic block
+#customer_managed_key property of the `azurerm_mysql_flexible_server` resource
+
 
 ##----------------------------------------------------------------------------- 
 ## Below resource will deploy private dns for flexible mysql server. 
