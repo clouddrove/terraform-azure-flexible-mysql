@@ -40,7 +40,7 @@ module "vnet" {
 ##-----------------------------------------------------------------------------
 module "subnet" {
   source               = "clouddrove/subnet/azure"
-  version              = "1.0.2"
+  version              = "1.1.0"
   name                 = local.name
   environment          = local.environment
   resource_group_name  = module.resource_group.resource_group_name
@@ -84,6 +84,7 @@ data "azurerm_private_dns_zone" "main" {
 module "flexible-mysql" {
   depends_on                     = [module.resource_group, module.vnet, data.azurerm_resource_group.main]
   source                         = "clouddrove/flexible-mysql/azure"
+  version                        = "1.0.1"
   name                           = local.name
   environment                    = local.environment
   main_rg_name                   = data.azurerm_resource_group.main.name
