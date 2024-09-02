@@ -30,9 +30,9 @@ jobs:
           - ${{ needs.versionExtract.outputs.minVersion }}
           - ${{ needs.versionExtract.outputs.maxVersion }}
         directory:
-          - _example/basic
-          - _example/complete
-          - _example/mysql-flexible-server-replication
+          - examples/basic
+          - examples/complete
+          - examples/mysql-flexible-server-replication
     steps:
       - name: Checkout
         uses: actions/checkout@v2
