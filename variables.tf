@@ -158,19 +158,6 @@ variable "virtual_network_id" {
   default     = ""
 }
 
-variable "key_vault_key_id" {
-  type        = string
-  description = "The URL to a Key Vault Key"
-  default     = null
-}
-
-variable "key_vault_id" {
-  type        = string
-  default     = ""
-  description = "Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret"
-}
-
-
 variable "private_dns" {
   type    = bool
   default = false

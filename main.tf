@@ -106,15 +106,6 @@ resource "azurerm_mysql_flexible_server_configuration" "main" {
   value               = element(var.values, count.index)
 }
 
-##------------------------------------------------------------------------
-## Manages a Customer Managed Key for a MySQL Server. - Default is "false"
-##------------------------------------------------------------------------
-resource "azurerm_mysql_server_key" "main" {
-  count            = var.enabled && var.key_vault_key_id != null ? 1 : 0
-  server_id        = join("", azurerm_mysql_flexible_server.main.*.id)
-  key_vault_key_id = var.key_vault_key_id
-}
-
 ##----------------------------------------------------------------------------- 
 ## Below resource will deploy private dns for flexible mysql server. 
 ##-----------------------------------------------------------------------------
