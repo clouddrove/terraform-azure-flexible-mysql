@@ -51,7 +51,7 @@ resource "azurerm_mysql_flexible_server" "main" {
   administrator_password            = var.admin_password == null ? random_password.main[0].result : var.admin_password
   backup_retention_days             = var.backup_retention_days
   delegated_subnet_id               = var.delegated_subnet_id
-  private_dns_zone_id               = var.private_dns ? join("", azurerm_private_dns_zone.main[0].id) : var.existing_private_dns_zone_id
+  private_dns_zone_id               = var.private_dns ? azurerm_private_dns_zone.main[0].id : var.existing_private_dns_zone_id
   sku_name                          = var.sku_name
   create_mode                       = var.create_mode
   geo_redundant_backup_enabled      = var.geo_redundant_backup_enabled
@@ -88,7 +88,7 @@ resource "azurerm_mysql_flexible_database" "main" {
   count               = var.enabled ? 1 : 0
   name                = var.db_name
   resource_group_name = local.resource_group_name
-  server_name         = join("", azurerm_mysql_flexible_server.main[0].name)
+  server_name         = azurerm_mysql_flexible_server.main[0].name
   charset             = var.charset
   collation           = var.collation
   depends_on          = [azurerm_mysql_flexible_server.main]
@@ -102,7 +102,7 @@ resource "azurerm_mysql_flexible_server_configuration" "main" {
   count               = var.enabled ? length(var.server_configuration_names) : 0
   name                = element(var.server_configuration_names, count.index)
   resource_group_name = local.resource_group_name
-  server_name         = join("", azurerm_mysql_flexible_server.main[0].name)
+  server_name         = azurerm_mysql_flexible_server.main[0].name
   value               = element(var.values, count.index)
 }
 
@@ -122,7 +122,7 @@ resource "azurerm_private_dns_zone" "main" {
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   count                 = var.enabled && var.private_dns ? 1 : 0
   name                  = format("mysql-endpoint-link-%s", module.labels.id)
-  private_dns_zone_name = join("", azurerm_private_dns_zone.main[0].name)
+  private_dns_zone_name = azurerm_private_dns_zone.main[0].name
   virtual_network_id    = var.virtual_network_id
   resource_group_name   = local.resource_group_name
   registration_enabled  = var.registration_enabled
