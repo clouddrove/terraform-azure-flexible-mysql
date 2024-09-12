@@ -10,7 +10,6 @@ module "flexible-mysql" {
   virtual_network_id  = "/subscriptions/---------------<vnet_id>---------------"
   delegated_subnet_id = "/subscriptions/---------------<delegated_subnet_id>---------------"
   mysql_version       = "8.0.21"
-  mysql_server_name   = "testmysqlserver"
   private_dns         = true
   zone                = "1"
   admin_username      = "mysqlusername"
