@@ -83,7 +83,7 @@ data "azurerm_private_dns_zone" "main" {
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
   depends_on                     = [module.resource_group, module.vnet, data.azurerm_resource_group.main]
-  source                         = "clouddrove/flexible-mysql/azure"
+  source                         = "../../"
   name                           = local.name
   environment                    = local.environment
   main_rg_name                   = data.azurerm_resource_group.main.name
@@ -92,7 +92,6 @@ module "flexible-mysql" {
   virtual_network_id             = module.vnet.vnet_id[0]
   delegated_subnet_id            = module.subnet.default_subnet_id[0]
   mysql_version                  = "8.0.21"
-  mysql_server_name              = "testmysqlserver"
   zone                           = "1"
   admin_username                 = "mysqlusern"
   admin_password                 = "ba5yatgfgfhdsvvc6A3ns2lu4gqzzc"
