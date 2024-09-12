@@ -1,6 +1,6 @@
 provider "azurerm" {
   features {}
-  subscription_id = "000000-11111-1223-XXX-XXXXXXXXXXXX"
+  subscription_id = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
 }
 
 locals {
@@ -94,7 +94,6 @@ module "flexible-mysql" {
   virtual_network_id  = module.vnet.vnet_id[0]
   delegated_subnet_id = module.subnet.default_subnet_id[0]
   mysql_version       = "8.0.21"
-  mysql_server_name   = "testmysqlserver"
   private_dns         = true
   zone                = "1"
   admin_username      = "mysqlusername"
