@@ -93,7 +93,11 @@ module "vault" {
   enabled_for_disk_encryption = false
   #private endpoint
   enable_private_endpoint = false
-  network_acls            = null
+  network_acls = {
+    bypass         = "AzureServices"
+    default_action = "Deny"
+    ip_rules       = ["0.0.0.0/0"]
+  }
   ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
 
   # diff_sub                                      = true
