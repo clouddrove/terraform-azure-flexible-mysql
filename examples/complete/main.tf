@@ -1,11 +1,19 @@
 provider "azurerm" {
   features {}
-  subscription_id = "000000-11111-1223-XXX-XXXXXXXXXXXX"
+  subscription_id = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
 }
 
+provider "azurerm" {
+  features {}
+  alias           = "peer"
+  subscription_id = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
+}
+
+data "azurerm_client_config" "current_client_config" {}
+
 locals {
-  name        = "app"
-  environment = "test"
+  name        = "lacoster-23"
+  environment = "maximum-32"
   label_order = ["name", "environment"]
 }
 
@@ -62,6 +70,46 @@ module "subnet" {
 }
 
 ##----------------------------------------------------------------------------- 
+## Key Vault module call.
+##-----------------------------------------------------------------------------
+module "vault" {
+  source  = "clouddrove/key-vault/azure"
+  version = "1.2.0"
+
+  providers = {
+    azurerm.dns_sub  = azurerm.peer,
+    azurerm.main_sub = azurerm
+  }
+
+  name                        = "oliveware-23"
+  environment                 = "vilod-32"
+  label_order                 = ["name", "environment", ]
+  resource_group_name         = module.resource_group.resource_group_name
+  location                    = module.resource_group.resource_group_location
+  admin_objects_ids           = [data.azurerm_client_config.current_client_config.object_id]
+  virtual_network_id          = module.vnet.vnet_id[0]
+  subnet_id                   = module.subnet.default_subnet_id[0]
+  enable_rbac_authorization   = true
+  enabled_for_disk_encryption = false
+  #private endpoint
+  enable_private_endpoint = false
+  network_acls            = null
+  ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
+
+  # diff_sub                                      = true
+  # alias                                         = ""
+  # alias_sub                                     = ""
+
+  #########Following to be uncommmented when using DNS zone from different resource group or different subscription.
+  # existing_private_dns_zone                     = ""
+  # existing_private_dns_zone_resource_group_name = ""
+
+  #### enable diagnostic setting
+  diagnostic_setting_enable  = false
+  log_analytics_workspace_id = module.log-analytics.workspace_id ## when diagnostic_setting_enable enable,  add log analytics workspace id
+}
+
+##----------------------------------------------------------------------------- 
 ## Log Analytics module call.
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
@@ -85,28 +133,30 @@ module "log-analytics" {
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {
-  depends_on          = [module.resource_group, module.vnet]
-  source              = "../../"
-  name                = local.name
-  environment         = local.environment
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
-  virtual_network_id  = module.vnet.vnet_id[0]
-  delegated_subnet_id = module.subnet.default_subnet_id[0]
-  mysql_version       = "8.0.21"
-  private_dns         = true
-  zone                = "1"
-  admin_username      = "mysqlusername"
-  admin_password      = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
-  sku_name            = "GP_Standard_D8ds_v4"
-  db_name             = "maindb"
-  charset             = "utf8mb3"
-  collation           = "utf8mb3_unicode_ci"
-  auto_grow_enabled   = true
-  iops                = 360
-  size_gb             = "20"
-  ##azurerm_mysql_flexible_server_configuration
+  depends_on                 = [module.resource_group, module.vnet, module.vault]
+  source                     = "../../"
+  name                       = local.name
+  environment                = local.environment
+  resource_group_name        = module.resource_group.resource_group_name
+  location                   = module.resource_group.resource_group_location
+  virtual_network_id         = module.vnet.vnet_id[0]
+  delegated_subnet_id        = module.subnet.default_subnet_id[0]
+  mysql_version              = "8.0.21"
+  private_dns                = true
+  zone                       = "1"
+  admin_username             = "mysqlusername"
+  admin_password             = "ba5yatgfgfhdsv6A3ns2lu4gqzzc"
+  sku_name                   = "GP_Standard_D8ds_v4"
+  db_name                    = "maindb"
+  charset                    = "utf8mb3"
+  collation                  = "utf8mb3_unicode_ci"
+  auto_grow_enabled          = true
+  iops                       = 360
+  size_gb                    = "20"
   server_configuration_names = ["interactive_timeout", "audit_log_enabled", "audit_log_events"]
   values                     = ["600", "ON", "CONNECTION,ADMIN,DDL,TABLE_ACCESS"]
   log_analytics_workspace_id = module.log-analytics.workspace_id
+  key_vault_id               = module.vault.id
+  key_vault_with_rbac        = true
+  cmk_enabled                = true
 }

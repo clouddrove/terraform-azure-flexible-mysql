@@ -269,3 +269,37 @@ variable "eventhub_authorization_rule_id" {
   default     = null
   description = "Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG."
 }
+
+variable "cmk_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "key_vault_id" {
+  type    = string
+  default = null
+}
+
+variable "key_vault_key_name" {
+  type    = string
+  default = ""
+}
+
+variable "cmk_key_type" {
+  type    = string
+  default = "RSA"
+}
+
+variable "cmk_key_size" {
+  type    = number
+  default = 2048
+}
+variable "cmk_geo_backup_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "key_vault_with_rbac" {
+  type    = bool
+  default = false
+}

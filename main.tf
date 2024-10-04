@@ -1,7 +1,7 @@
 ##----------------------------------------------------------------------------- 
 ## Vritual Network and Subnet Creation  
 ##-----------------------------------------------------------------------------
-
+data "azurerm_client_config" "current" {}
 ##----------------------------------------------------------------------------- 
 ## Locals Declaration 
 ##-----------------------------------------------------------------------------
@@ -67,6 +67,27 @@ resource "azurerm_mysql_flexible_server" "main" {
     content {
       mode                      = high_availability.value.mode
       standby_availability_zone = lookup(high_availability.value, "standby_availability_zone", 1)
+    }
+  }
+
+  dynamic "identity" {
+    for_each = var.cmk_enabled ? [true] : []
+    content {
+      type = "UserAssigned"
+      identity_ids = flatten([
+        [azurerm_user_assigned_identity.primary_cmk_umi[0].id],
+        var.geo_redundant_backup_enabled ? [azurerm_user_assigned_identity.geo_cmk_umi[0].id] : []
+      ])
+    }
+  }
+
+  dynamic "customer_managed_key" {
+    for_each = var.cmk_enabled ? [true] : []
+    content {
+      key_vault_key_id                     = azurerm_key_vault_key.primary_cmk_key[0].id
+      primary_user_assigned_identity_id    = azurerm_user_assigned_identity.primary_cmk_umi[0].id
+      geo_backup_key_vault_key_id          = var.geo_redundant_backup_enabled ? azurerm_key_vault_key.geo_cmk_key[0].id : null
+      geo_backup_user_assigned_identity_id = var.geo_redundant_backup_enabled ? azurerm_user_assigned_identity.geo_cmk_umi[0].id : null
     }
   }
 
@@ -164,4 +185,69 @@ resource "azurerm_monitor_diagnostic_setting" "mysql" {
       enabled  = true
     }
   }
+}
+
+resource "azurerm_user_assigned_identity" "primary_cmk_umi" {
+  count               = var.cmk_enabled ? 1 : 0
+  name                = format("%s-cmk-primary-identity", module.labels.id)
+  resource_group_name = local.resource_group_name
+  location            = var.location
+}
+
+##----------------------------------------------------------------------------- 
+## Customer Managed Key (CMK) - Key Vault Key Creation  
+##-----------------------------------------------------------------------------
+resource "azurerm_key_vault_key" "primary_cmk_key" {
+  count        = var.cmk_enabled ? 1 : 0
+  name         = format("%s-cmk-key", module.labels.id)
+  key_vault_id = var.key_vault_id
+  key_type     = var.cmk_key_type
+  key_size     = var.cmk_key_size
+  key_opts     = ["encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey"]
+}
+
+resource "azurerm_role_assignment" "primary_cmk_role_assignment" {
+  count                = var.key_vault_with_rbac && var.cmk_enabled ? 1 : 0
+  principal_id         = azurerm_user_assigned_identity.primary_cmk[0].principal_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  scope                = var.key_vault_id
+}
+
+resource "azurerm_key_vault_access_policy" "primary_cmk_access_policy" {
+  count           = !var.key_vault_with_rbac && var.cmk_enabled ? 1 : 0
+  key_vault_id    = var.key_vault_id
+  tenant_id       = data.azurerm_client_config.current.tenant_id
+  object_id       = azurerm_user_assigned_identity.primary_cmk[0].principal_id
+  key_permissions = ["Get", "WrapKey", "UnwrapKey", "List"]
+}
+
+resource "azurerm_user_assigned_identity" "geo_cmk_umi" {
+  count               = var.geo_redundant_backup_enabled && var.cmk_enabled ? 1 : 0
+  name                = format("%s-cmk-geo-identity", module.labels.id)
+  resource_group_name = local.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_key_vault_key" "geo_cmk_key" {
+  count        = var.geo_redundant_backup_enabled && var.cmk_enabled ? 1 : 0
+  name         = format("%s-geo-cmk-key", module.labels.id)
+  key_vault_id = var.key_vault_id
+  key_type     = var.cmk_key_type
+  key_size     = var.cmk_key_size
+  key_opts     = ["encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey"]
+}
+
+resource "azurerm_role_assignment" "geo_cmk_role_assignment" {
+  count                = var.key_vault_with_rbac && var.cmk_enabled && var.geo_redundant_backup_enabled ? 1 : 0
+  principal_id         = azurerm_user_assigned_identity.geo_cmk[0].principal_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  scope                = var.key_vault_id
+}
+
+resource "azurerm_key_vault_access_policy" "geo_cmk_access_policy" {
+  count           = !var.key_vault_with_rbac && var.cmk_enabled && var.geo_redundant_backup_enabled ? 1 : 0
+  key_vault_id    = var.key_vault_id
+  tenant_id       = data.azurerm_client_config.current.tenant_id
+  object_id       = azurerm_user_assigned_identity.geo_cmk[0].principal_id
+  key_permissions = ["Get", "WrapKey", "UnwrapKey", "List"]
 }
