@@ -280,11 +280,6 @@ variable "key_vault_id" {
   default = null
 }
 
-variable "key_vault_key_name" {
-  type    = string
-  default = ""
-}
-
 variable "cmk_key_type" {
   type    = string
   default = "RSA"
@@ -293,10 +288,6 @@ variable "cmk_key_type" {
 variable "cmk_key_size" {
   type    = number
   default = 2048
-}
-variable "cmk_geo_backup_enabled" {
-  type    = bool
-  default = false
 }
 
 variable "key_vault_with_rbac" {
