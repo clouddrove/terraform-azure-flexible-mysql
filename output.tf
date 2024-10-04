@@ -18,9 +18,3 @@ output "azurerm_private_dns_zone_id" {
   value       = azurerm_private_dns_zone.main[0].id
   description = "The Private DNS Zone ID."
 }
-
-
-
-
-
-

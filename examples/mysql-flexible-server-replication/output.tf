@@ -10,8 +10,3 @@ output "azurerm_flexible-mysql_server_configuration_id" {
   value       = module.flexible-mysql.azurerm_mysql_flexible_server_configuration_id
   description = "The ID of the MySQL Flexible Server Configuration."
 }
-
-
-
-
-
