@@ -19,9 +19,3 @@ output "azurerm_private_dns_zone_id" {
   value       = join("", azurerm_private_dns_zone.main.*.id)
   description = "The Private DNS Zone ID."
 }
-
-
-
-
-
-
