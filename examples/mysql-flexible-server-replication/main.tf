@@ -8,7 +8,7 @@ locals {
   label_order = ["name", "environment"]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Resource Group module call
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
@@ -21,7 +21,7 @@ module "resource_group" {
   location    = "Canada Central"
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Virtual Network module call.
 ##-----------------------------------------------------------------------------
 module "vnet" {
@@ -34,7 +34,7 @@ module "vnet" {
   address_space       = "10.0.0.0/16"
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Subnet module call.
 ## Delegated subnet for mysql.
 ##-----------------------------------------------------------------------------
@@ -61,16 +61,16 @@ module "subnet" {
   }
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Existing resource group where dns zone created
 ##-----------------------------------------------------------------------------
 data "azurerm_resource_group" "main" {
   name = "app-mysqll-test-resource-group"
 }
 
-##----------------------------------------------------------------------------- 
-## Data block for existing private dns zone. 
-## Required because for replication both flexible mysql servers must be in same private dns zone. 
+##-----------------------------------------------------------------------------
+## Data block for existing private dns zone.
+## Required because for replication both flexible mysql servers must be in same private dns zone.
 ##-----------------------------------------------------------------------------
 data "azurerm_private_dns_zone" "main" {
   depends_on          = [data.azurerm_resource_group.main]
@@ -78,7 +78,7 @@ data "azurerm_private_dns_zone" "main" {
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Flexible Mysql server module call.
 ##-----------------------------------------------------------------------------
 module "flexible-mysql" {

@@ -1,18 +1,18 @@
-##----------------------------------------------------------------------------- 
-## Vritual Network and Subnet Creation  
+##-----------------------------------------------------------------------------
+## Vritual Network and Subnet Creation
 ##-----------------------------------------------------------------------------
 data "azurerm_client_config" "current" {}
 
-##----------------------------------------------------------------------------- 
-## Locals Declaration 
+##-----------------------------------------------------------------------------
+## Locals Declaration
 ##-----------------------------------------------------------------------------
 locals {
   resource_group_name = var.resource_group_name
   location            = var.location
 }
 
-##----------------------------------------------------------------------------- 
-## Labels module callled that will be used for naming and tags.   
+##-----------------------------------------------------------------------------
+## Labels module callled that will be used for naming and tags.
 ##-----------------------------------------------------------------------------
 module "labels" {
   source      = "clouddrove/labels/azure"
@@ -24,9 +24,9 @@ module "labels" {
   repository  = var.repository
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Random Password Resource.
-## Will be passed as admin password of mysql server when admin password is not passed manually as variable. 
+## Will be passed as admin password of mysql server when admin password is not passed manually as variable.
 ##-----------------------------------------------------------------------------
 
 resource "random_password" "main" {
@@ -38,8 +38,8 @@ resource "random_password" "main" {
   special     = false
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create flexible mysql server in Azure environment.    
+##-----------------------------------------------------------------------------
+## Below resource will create flexible mysql server in Azure environment.
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_server" "main" {
@@ -80,8 +80,8 @@ resource "azurerm_mysql_flexible_server" "main" {
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main, azurerm_private_dns_zone_virtual_network_link.main2]
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create mysql flexible database. 
+##-----------------------------------------------------------------------------
+## Below resource will create mysql flexible database.
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_database" "main" {
@@ -94,8 +94,8 @@ resource "azurerm_mysql_flexible_database" "main" {
   depends_on          = [azurerm_mysql_flexible_server.main]
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create flexible mysql server configuration. 
+##-----------------------------------------------------------------------------
+## Below resource will create flexible mysql server configuration.
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_server_configuration" "main" {
@@ -115,8 +115,8 @@ resource "azurerm_mysql_server_key" "main" {
   key_vault_key_id = var.key_vault_key_id
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will deploy private dns for flexible mysql server. 
+##-----------------------------------------------------------------------------
+## Below resource will deploy private dns for flexible mysql server.
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone" "main" {
   count               = var.enabled && var.private_dns ? 1 : 0
@@ -125,8 +125,8 @@ resource "azurerm_private_dns_zone" "main" {
   tags                = module.labels.tags
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create vnet link in above created mysql private dns resource. 
+##-----------------------------------------------------------------------------
+## Below resource will create vnet link in above created mysql private dns resource.
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   count                 = var.enabled && var.private_dns ? 1 : 0
@@ -138,8 +138,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   tags                  = module.labels.tags
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create vnet link in previously existing mysql private dns zone.  
+##-----------------------------------------------------------------------------
+## Below resource will create vnet link in previously existing mysql private dns zone.
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "main2" {
   count                 = var.enabled && var.existing_private_dns_zone ? 1 : 0
