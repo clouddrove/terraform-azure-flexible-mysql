@@ -15,6 +15,3 @@ output "azurerm_private_dns_zone_id" {
   value       = module.flexible-mysql.azurerm_private_dns_zone_id
   description = "The Private DNS Zone ID."
 }
-
-
-
