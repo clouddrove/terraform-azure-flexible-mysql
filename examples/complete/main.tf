@@ -12,8 +12,8 @@ provider "azurerm" {
 data "azurerm_client_config" "current_client_config" {}
 
 locals {
-  name        = "lacoster-23"
-  environment = "maximum-32"
+  name        = "app"
+  environment = "test"
   label_order = ["name", "environment"]
 }
 
@@ -81,9 +81,9 @@ module "vault" {
     azurerm.main_sub = azurerm
   }
 
-  name                        = "oliveware-23"
-  environment                 = "vilod-32"
-  label_order                 = ["name", "environment", ]
+  name                        = local.name
+  environment                 = local.environment
+  label_order                 = local.label_order
   resource_group_name         = module.resource_group.resource_group_name
   location                    = module.resource_group.resource_group_location
   admin_objects_ids           = [data.azurerm_client_config.current_client_config.object_id]
