@@ -30,7 +30,7 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 
 resource "random_password" "main" {
-  count       = var.admin_password == null ? 1 : 0
+  count       = var.create_password ? 1 : 0
   length      = var.admin_password_length
   min_upper   = 4
   min_lower   = 2
@@ -44,7 +44,7 @@ resource "random_password" "main" {
 
 resource "azurerm_mysql_flexible_server" "main" {
   count                             = var.enabled ? 1 : 0
-  name                              = format("%s-mysql-flexible-server", module.labels.id)
+  name                              = var.mysql_server_name != null ? var.mysql_server_name : format("%s-mysql-flexible-server", module.labels.id)
   resource_group_name               = local.resource_group_name
   location                          = var.location
   administrator_login               = var.admin_username
@@ -71,13 +71,33 @@ resource "azurerm_mysql_flexible_server" "main" {
       standby_availability_zone = lookup(high_availability.value, "standby_availability_zone", 1)
     }
   }
+  identity {
+    type         = var.identity_type
+    identity_ids = var.identity_type == "UserAssigned" ? var.user_assigned_identity_ids : []
+  }
 
   version = var.mysql_version
   zone    = var.zone
 
-  tags = module.labels.tags
+  tags = var.custom_tags == null ? module.labels.tags : var.custom_tags
 
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main, azurerm_private_dns_zone_virtual_network_link.main2]
+}
+
+##----------------------------------------------------------------------------- 
+## Below resource will create mysql server active directory administrator. 
+##-----------------------------------------------------------------------------
+
+resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
+  count = length(var.entra_authentication.object_id[*]) > 0 ? 1 : 0
+
+  server_id   = join("", azurerm_mysql_flexible_server.main.*.id)
+  identity_id = var.entra_authentication.user_assigned_identity_id
+  login       = var.entra_authentication.login
+  object_id   = var.entra_authentication.object_id
+  tenant_id   = data.azurerm_client_config.current.tenant_id
+
+  depends_on = [ azurerm_mysql_flexible_server.main ]
 }
 
 ##----------------------------------------------------------------------------- 
@@ -91,7 +111,7 @@ resource "azurerm_mysql_flexible_database" "main" {
   server_name         = join("", azurerm_mysql_flexible_server.main.*.name)
   charset             = var.charset
   collation           = var.collation
-  depends_on          = [azurerm_mysql_flexible_server.main]
+  depends_on          = [azurerm_mysql_flexible_server_active_directory_administrator.main]
 }
 
 ##----------------------------------------------------------------------------- 
@@ -99,7 +119,7 @@ resource "azurerm_mysql_flexible_database" "main" {
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_server_configuration" "main" {
-  count               = var.enabled ? length(var.server_configuration_names) : 0
+  count               = var.enabled && var.server_parameters_enabled ? length(var.server_configuration_names) : 0
   name                = element(var.server_configuration_names, count.index)
   resource_group_name = local.resource_group_name
   server_name         = join("", azurerm_mysql_flexible_server.main.*.name)
@@ -122,7 +142,7 @@ resource "azurerm_private_dns_zone" "main" {
   count               = var.enabled && var.private_dns ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
   resource_group_name = local.resource_group_name
-  tags                = module.labels.tags
+  tags                = var.custom_tags == null ? module.labels.tags : var.custom_tags
 }
 
 ##----------------------------------------------------------------------------- 
@@ -135,7 +155,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   virtual_network_id    = var.virtual_network_id
   resource_group_name   = local.resource_group_name
   registration_enabled  = var.registration_enabled
-  tags                  = module.labels.tags
+  tags                  = var.custom_tags == null ? module.labels.tags : var.custom_tags
 }
 
 ##----------------------------------------------------------------------------- 
@@ -148,7 +168,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main2" {
   virtual_network_id    = var.virtual_network_id
   resource_group_name   = var.main_rg_name
   registration_enabled  = var.registration_enabled
-  tags                  = module.labels.tags
+  tags                  = var.custom_tags == null ? module.labels.tags : var.custom_tags
 }
 
 resource "azurerm_monitor_diagnostic_setting" "mysql" {
