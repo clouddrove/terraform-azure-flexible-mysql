@@ -323,13 +323,3 @@ variable "entra_authentication" {
   })
   default = {}
 }
-
-variable "server_parameters_enabled" {
-  type = bool
-  default = true
-}
-
-variable "create_password" {
-  type = bool
-  default = false
-}
