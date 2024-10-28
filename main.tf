@@ -30,7 +30,7 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 
 resource "random_password" "main" {
-  count       = var.create_password ? 1 : 0
+  count       = var.admin_password == null ? 1 : 0
   length      = var.admin_password_length
   min_upper   = 4
   min_lower   = 2
@@ -119,7 +119,7 @@ resource "azurerm_mysql_flexible_database" "main" {
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_server_configuration" "main" {
-  count               = var.enabled && var.server_parameters_enabled ? length(var.server_configuration_names) : 0
+  count               = var.enabled && ? length(var.server_configuration_names) : 0
   name                = element(var.server_configuration_names, count.index)
   resource_group_name = local.resource_group_name
   server_name         = join("", azurerm_mysql_flexible_server.main.*.name)
