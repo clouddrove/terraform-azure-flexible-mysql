@@ -20,6 +20,11 @@ output "azurerm_private_dns_zone_id" {
   description = "The Private DNS Zone ID."
 }
 
+output "password_result" {
+  value = var.admin_password == null ? random_password.main[0].result : var.admin_password
+  description = "Password Value"
+  sensitive = true
+}
 
 
 
