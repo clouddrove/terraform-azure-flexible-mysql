@@ -245,10 +245,7 @@ variable "high_availability" {
     mode                      = string
     standby_availability_zone = optional(number)
   })
-  default = {
-    mode                      = "SameZone"
-    standby_availability_zone = 1
-  }
+  default = null
 }
 
 variable "enable_diagnostic" {
@@ -298,4 +295,31 @@ variable "eventhub_authorization_rule_id" {
   type        = string
   default     = null
   description = "Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG."
+}
+
+variable "custom_tags" {
+  type = map(string)
+  default = {}
+}
+
+variable "identity_type" {
+  description = "Type of managed identity to set"
+  type        = string
+  default     = null
+}
+
+variable "user_assigned_identity_ids" {
+  description = "List of user-assigned managed identity IDs"
+  type        = list(string)
+  default     = []
+}
+
+variable "entra_authentication" {
+  description = "Azure Entra authentication configuration block for Azure MySQL Flexible Server"
+  type = object({
+    user_assigned_identity_id = optional(string, null)
+    login                     = optional(string, null)
+    object_id                 = optional(string, null)
+  })
+  default = {}
 }
