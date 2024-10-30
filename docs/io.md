@@ -67,4 +67,5 @@
 | azurerm\_private\_dns\_zone\_virtual\_network\_link\_id | The ID of the Private DNS Zone Virtual Network Link. |
 | existing\_private\_dns\_zone\_virtual\_network\_link\_id | The ID of the Private DNS Zone Virtual Network Link. |
 | mysql\_flexible\_server\_id | The ID of the MySQL Flexible Server. |
+| password\_result | Password Value |
 
