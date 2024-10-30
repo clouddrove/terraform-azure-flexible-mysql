@@ -71,9 +71,13 @@ resource "azurerm_mysql_flexible_server" "main" {
       standby_availability_zone = lookup(high_availability.value, "standby_availability_zone", 1)
     }
   }
-  identity {
-    type         = var.identity_type
+   dynamic "identity" {
+    for_each = toset(var.identity_type != null ? [var.identity_type] : [])
+    content {
+      type         = var.identity_type
     identity_ids = var.identity_type == "UserAssigned" ? var.user_assigned_identity_ids : []
+    }
+    
   }
 
   version = var.mysql_version
