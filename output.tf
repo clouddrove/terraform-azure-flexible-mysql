@@ -21,9 +21,9 @@ output "azurerm_private_dns_zone_id" {
 }
 
 output "password_result" {
-  value = var.admin_password == null ? random_password.main[0].result : var.admin_password
+  value       = var.admin_password == null ? random_password.main[0].result : var.admin_password
   description = "Password Value"
-  sensitive = true
+  sensitive   = true
 }
 
 
