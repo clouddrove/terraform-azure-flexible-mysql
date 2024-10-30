@@ -298,7 +298,7 @@ variable "eventhub_authorization_rule_id" {
 }
 
 variable "custom_tags" {
-  type = map(string)
+  type    = map(string)
   default = {}
 }
 

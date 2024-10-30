@@ -71,13 +71,13 @@ resource "azurerm_mysql_flexible_server" "main" {
       standby_availability_zone = lookup(high_availability.value, "standby_availability_zone", 1)
     }
   }
-   dynamic "identity" {
+  dynamic "identity" {
     for_each = toset(var.identity_type != null ? [var.identity_type] : [])
     content {
       type         = var.identity_type
-    identity_ids = var.identity_type == "UserAssigned" ? var.user_assigned_identity_ids : []
+      identity_ids = var.identity_type == "UserAssigned" ? var.user_assigned_identity_ids : []
     }
-    
+
   }
 
   version = var.mysql_version
@@ -101,7 +101,7 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
   object_id   = var.entra_authentication.object_id
   tenant_id   = data.azurerm_client_config.current.tenant_id
 
-  depends_on = [ azurerm_mysql_flexible_server.main ]
+  depends_on = [azurerm_mysql_flexible_server.main]
 }
 
 ##----------------------------------------------------------------------------- 
