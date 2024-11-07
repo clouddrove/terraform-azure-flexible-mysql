@@ -7,7 +7,7 @@ repos:
       - id: shellcheck
       - id: tflint
 
-  - repo: git://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v4.0.1 # Use the ref you want to point at
     hooks:
       - id: end-of-file-fixer
@@ -19,3 +19,17 @@ repos:
       - id: debug-statements
       - id: check-yaml
       - id: check-added-large-files
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.77.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_docs
+        args:
+          - '--args=--lockfile=false'
+          - --hook-config=--add-to-existing-file=true
+          - --hook-config=--create-file-if-not-exist=true
+
+      - id: terraform_tflint
+        args:
+          - --args=--config=.tflint.hcl

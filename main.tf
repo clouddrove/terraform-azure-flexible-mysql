@@ -1,18 +1,16 @@
-##----------------------------------------------------------------------------- 
-## Vritual Network and Subnet Creation  
+##-----------------------------------------------------------------------------
+## Vritual Network and Subnet Creation
 ##-----------------------------------------------------------------------------
 data "azurerm_client_config" "current" {}
-
-##----------------------------------------------------------------------------- 
-## Locals Declaration 
+##-----------------------------------------------------------------------------
+## Locals Declaration
 ##-----------------------------------------------------------------------------
 locals {
   resource_group_name = var.resource_group_name
-  location            = var.location
 }
 
-##----------------------------------------------------------------------------- 
-## Labels module callled that will be used for naming and tags.   
+##-----------------------------------------------------------------------------
+## Labels module callled that will be used for naming and tags.
 ##-----------------------------------------------------------------------------
 module "labels" {
   source      = "clouddrove/labels/azure"
@@ -24,9 +22,9 @@ module "labels" {
   repository  = var.repository
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Random Password Resource.
-## Will be passed as admin password of mysql server when admin password is not passed manually as variable. 
+## Will be passed as admin password of mysql server when admin password is not passed manually as variable.
 ##-----------------------------------------------------------------------------
 
 resource "random_password" "main" {
@@ -38,8 +36,8 @@ resource "random_password" "main" {
   special     = false
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create flexible mysql server in Azure environment.    
+##-----------------------------------------------------------------------------
+## Below resource will create flexible mysql server in Azure environment.
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_server" "main" {
@@ -51,7 +49,7 @@ resource "azurerm_mysql_flexible_server" "main" {
   administrator_password            = var.admin_password == null ? random_password.main[0].result : var.admin_password
   backup_retention_days             = var.backup_retention_days
   delegated_subnet_id               = var.delegated_subnet_id
-  private_dns_zone_id               = var.private_dns ? join("", azurerm_private_dns_zone.main.*.id) : var.existing_private_dns_zone_id
+  private_dns_zone_id               = var.private_dns ? azurerm_private_dns_zone.main[0].id : var.existing_private_dns_zone_id
   sku_name                          = var.sku_name
   create_mode                       = var.create_mode
   geo_redundant_backup_enabled      = var.geo_redundant_backup_enabled
@@ -80,6 +78,27 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   }
 
+  dynamic "identity" {
+    for_each = var.cmk_enabled ? [true] : []
+    content {
+      type = "UserAssigned"
+      identity_ids = flatten([
+        [azurerm_user_assigned_identity.primary_cmk_umi[0].id],
+        var.geo_redundant_backup_enabled ? [azurerm_user_assigned_identity.geo_cmk_umi[0].id] : []
+      ])
+    }
+  }
+
+  dynamic "customer_managed_key" {
+    for_each = var.cmk_enabled ? [true] : []
+    content {
+      key_vault_key_id                     = azurerm_key_vault_key.primary_cmk_key[0].id
+      primary_user_assigned_identity_id    = azurerm_user_assigned_identity.primary_cmk_umi[0].id
+      geo_backup_key_vault_key_id          = var.geo_redundant_backup_enabled ? azurerm_key_vault_key.geo_cmk_key[0].id : null
+      geo_backup_user_assigned_identity_id = var.geo_redundant_backup_enabled ? azurerm_user_assigned_identity.geo_cmk_umi[0].id : null
+    }
+  }
+
   version = var.mysql_version
   zone    = var.zone
 
@@ -87,6 +106,9 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main, azurerm_private_dns_zone_virtual_network_link.main2]
 }
+
+##-----------------------------------------------------------------------------
+## Below resource will create mysql flexible database.
 
 ##----------------------------------------------------------------------------- 
 ## Below resource will create mysql server active directory administrator. 
@@ -106,41 +128,33 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
 
 ##----------------------------------------------------------------------------- 
 ## Below resource will create mysql flexible database. 
+
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_database" "main" {
   count               = var.enabled ? 1 : 0
   name                = var.db_name
   resource_group_name = local.resource_group_name
-  server_name         = join("", azurerm_mysql_flexible_server.main.*.name)
+  server_name         = azurerm_mysql_flexible_server.main[0].name
   charset             = var.charset
   collation           = var.collation
   depends_on          = [azurerm_mysql_flexible_server_active_directory_administrator.main]
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create flexible mysql server configuration. 
+##-----------------------------------------------------------------------------
+## Below resource will create flexible mysql server configuration.
 ##-----------------------------------------------------------------------------
 
 resource "azurerm_mysql_flexible_server_configuration" "main" {
   count               = var.enabled ? length(var.server_configuration_names) : 0
   name                = element(var.server_configuration_names, count.index)
   resource_group_name = local.resource_group_name
-  server_name         = join("", azurerm_mysql_flexible_server.main.*.name)
+  server_name         = azurerm_mysql_flexible_server.main[0].name
   value               = element(var.values, count.index)
 }
 
-##------------------------------------------------------------------------
-## Manages a Customer Managed Key for a MySQL Server. - Default is "false"
-##------------------------------------------------------------------------
-resource "azurerm_mysql_server_key" "main" {
-  count            = var.enabled && var.key_vault_key_id != null ? 1 : 0
-  server_id        = join("", azurerm_mysql_flexible_server.main.*.id)
-  key_vault_key_id = var.key_vault_key_id
-}
-
-##----------------------------------------------------------------------------- 
-## Below resource will deploy private dns for flexible mysql server. 
+##-----------------------------------------------------------------------------
+## Below resource will deploy private dns for flexible mysql server.
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone" "main" {
   count               = var.enabled && var.private_dns ? 1 : 0
@@ -149,21 +163,21 @@ resource "azurerm_private_dns_zone" "main" {
   tags                = var.custom_tags == null ? module.labels.tags : var.custom_tags
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create vnet link in above created mysql private dns resource. 
+##-----------------------------------------------------------------------------
+## Below resource will create vnet link in above created mysql private dns resource.
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   count                 = var.enabled && var.private_dns ? 1 : 0
   name                  = format("mysql-endpoint-link-%s", module.labels.id)
-  private_dns_zone_name = join("", azurerm_private_dns_zone.main.*.name)
+  private_dns_zone_name = azurerm_private_dns_zone.main[0].name
   virtual_network_id    = var.virtual_network_id
   resource_group_name   = local.resource_group_name
   registration_enabled  = var.registration_enabled
   tags                  = var.custom_tags == null ? module.labels.tags : var.custom_tags
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create vnet link in previously existing mysql private dns zone.  
+##-----------------------------------------------------------------------------
+## Below resource will create vnet link in previously existing mysql private dns zone.
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "main2" {
   count                 = var.enabled && var.existing_private_dns_zone ? 1 : 0
@@ -199,4 +213,69 @@ resource "azurerm_monitor_diagnostic_setting" "mysql" {
       enabled  = true
     }
   }
+}
+
+resource "azurerm_user_assigned_identity" "primary_cmk_umi" {
+  count               = var.cmk_enabled ? 1 : 0
+  name                = format("%s-cmk-primary-identity", module.labels.id)
+  resource_group_name = local.resource_group_name
+  location            = var.location
+}
+
+##-----------------------------------------------------------------------------
+## Customer Managed Key (CMK) - Key Vault Key Creation
+##-----------------------------------------------------------------------------
+resource "azurerm_key_vault_key" "primary_cmk_key" {
+  count        = var.cmk_enabled ? 1 : 0
+  name         = format("%s-cmk-key", module.labels.id)
+  key_vault_id = var.key_vault_id
+  key_type     = var.cmk_key_type
+  key_size     = var.cmk_key_size
+  key_opts     = ["encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey"]
+}
+
+resource "azurerm_role_assignment" "primary_cmk_role_assignment" {
+  count                = var.key_vault_with_rbac && var.cmk_enabled ? 1 : 0
+  principal_id         = azurerm_user_assigned_identity.primary_cmk_umi[0].principal_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  scope                = var.key_vault_id
+}
+
+resource "azurerm_key_vault_access_policy" "primary_cmk_access_policy" {
+  count           = !var.key_vault_with_rbac && var.cmk_enabled ? 1 : 0
+  key_vault_id    = var.key_vault_id
+  tenant_id       = data.azurerm_client_config.current.tenant_id
+  object_id       = azurerm_user_assigned_identity.primary_cmk_umi[0].principal_id
+  key_permissions = ["Get", "WrapKey", "UnwrapKey", "List"]
+}
+
+resource "azurerm_user_assigned_identity" "geo_cmk_umi" {
+  count               = var.geo_redundant_backup_enabled && var.cmk_enabled ? 1 : 0
+  name                = format("%s-cmk-geo-identity", module.labels.id)
+  resource_group_name = local.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_key_vault_key" "geo_cmk_key" {
+  count        = var.geo_redundant_backup_enabled && var.cmk_enabled ? 1 : 0
+  name         = format("%s-geo-cmk-key", module.labels.id)
+  key_vault_id = var.key_vault_id
+  key_type     = var.cmk_key_type
+  key_size     = var.cmk_key_size
+  key_opts     = ["encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey"]
+}
+
+resource "azurerm_role_assignment" "geo_cmk_role_assignment" {
+  count                = var.key_vault_with_rbac && var.cmk_enabled && var.geo_redundant_backup_enabled ? 1 : 0
+  principal_id         = azurerm_user_assigned_identity.geo_cmk_umi[0].principal_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  scope                = var.key_vault_id
+}
+
+resource "azurerm_key_vault_access_policy" "geo_cmk_access_policy" {
+  count           = !var.key_vault_with_rbac && var.cmk_enabled && var.geo_redundant_backup_enabled ? 1 : 0
+  key_vault_id    = var.key_vault_id
+  tenant_id       = data.azurerm_client_config.current.tenant_id
+  object_id       = azurerm_user_assigned_identity.geo_cmk_umi[0].principal_id
+  key_permissions = ["Get", "WrapKey", "UnwrapKey", "List"]
 }
