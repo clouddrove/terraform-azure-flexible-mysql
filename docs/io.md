@@ -10,12 +10,14 @@
 | charset | Specifies the Charset for the MySQL Database, which needs to be a valid MySQL Charset. Changing this forces a new resource to be created. | `string` | `""` | no |
 | collation | Specifies the Collation for the MySQL Database, which needs to be a valid MySQL Collation. Changing this forces a new resource to be created. | `string` | `""` | no |
 | create\_mode | The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default` | `string` | `"Default"` | no |
+| custom\_tags | n/a | `map(string)` | `{}` | no |
 | db\_name | Specifies the name of the MySQL Database, which needs to be a valid MySQL identifier. Changing this forces a new resource to be created. | `string` | `""` | no |
 | delegated\_subnet\_id | The resource ID of the subnet | `string` | `""` | no |
 | enable\_diagnostic | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | enable\_private\_endpoint | Manages a Private Endpoint to Azure database for MySQL | `bool` | `false` | no |
 | enabled | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | end\_ip\_address | n/a | `string` | `""` | no |
+| entra\_authentication | Azure Entra authentication configuration block for Azure MySQL Flexible Server | <pre>object({<br>    user_assigned_identity_id = optional(string, null)<br>    login                     = optional(string, null)<br>    object_id                 = optional(string, null)<br>  })</pre> | `{}` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
 | eventhub\_authorization\_rule\_id | Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | eventhub\_name | Eventhub Name to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
@@ -23,7 +25,8 @@
 | existing\_private\_dns\_zone\_id | n/a | `string` | `""` | no |
 | existing\_private\_dns\_zone\_name | The name of the Private DNS zone (without a terminating dot). Changing this forces a new resource to be created. | `string` | `""` | no |
 | geo\_redundant\_backup\_enabled | Should geo redundant backup enabled? Defaults to false. Changing this forces a new MySQL Flexible Server to be created. | `bool` | `true` | no |
-| high\_availability | Map of high availability configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-high-availability. `null` to disable high availability | <pre>object({<br>    mode                      = string<br>    standby_availability_zone = optional(number)<br>  })</pre> | <pre>{<br>  "mode": "SameZone",<br>  "standby_availability_zone": 1<br>}</pre> | no |
+| high\_availability | Map of high availability configuration: https://docs.microsoft.com/en-us/azure/mysql/flexible-server/concepts-high-availability. `null` to disable high availability | <pre>object({<br>    mode                      = string<br>    standby_availability_zone = optional(number)<br>  })</pre> | `null` | no |
+| identity\_type | Type of managed identity to set | `string` | `null` | no |
 | iops | The storage IOPS for the MySQL Flexible Server. Possible values are between 360 and 20000. | `number` | `360` | no |
 | key\_vault\_id | Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret | `string` | `""` | no |
 | key\_vault\_key\_id | The URL to a Key Vault Key | `string` | `null` | no |
@@ -50,6 +53,7 @@
 | source\_server\_id | The resource ID of the source MySQL Flexible Server to be restored. Required when create\_mode is PointInTimeRestore, GeoRestore, and Replica. Changing this forces a new MySQL Flexible Server to be created. | `string` | `null` | no |
 | start\_ip\_address | n/a | `string` | `""` | no |
 | storage\_account\_id | Storage account id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
+| user\_assigned\_identity\_ids | List of user-assigned managed identity IDs | `list(string)` | `[]` | no |
 | values | Specifies the value of the MySQL Flexible Server Configuration. See the MySQL documentation for valid values. Changing this forces a new resource to be created. | `list(string)` | `[]` | no |
 | virtual\_network\_id | The name of the virtual network | `string` | `""` | no |
 | zone | Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are 1, 2 and 3. | `number` | `null` | no |
@@ -63,3 +67,6 @@
 | azurerm\_private\_dns\_zone\_virtual\_network\_link\_id | The ID of the Private DNS Zone Virtual Network Link. |
 | existing\_private\_dns\_zone\_virtual\_network\_link\_id | The ID of the Private DNS Zone Virtual Network Link. |
 | mysql\_flexible\_server\_id | The ID of the MySQL Flexible Server. |
+
+| password\_result | Password Value |
+

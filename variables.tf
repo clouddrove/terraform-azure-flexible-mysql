@@ -36,8 +36,6 @@ variable "resource_group_name" {
   default     = ""
 }
 
-
-
 variable "enabled" {
   type        = bool
   description = "Set to false to prevent the module from creating any resources."
@@ -215,10 +213,7 @@ variable "high_availability" {
     mode                      = string
     standby_availability_zone = optional(number)
   })
-  default = {
-    mode                      = "SameZone"
-    standby_availability_zone = 1
-  }
+  default = null
 }
 
 variable "enable_diagnostic" {
@@ -293,4 +288,31 @@ variable "cmk_key_size" {
 variable "key_vault_with_rbac" {
   type    = bool
   default = false
+}
+
+variable "custom_tags" {
+  type    = map(string)
+  default = {}
+}
+
+variable "identity_type" {
+  description = "Type of managed identity to set"
+  type        = string
+  default     = null
+}
+
+variable "user_assigned_identity_ids" {
+  description = "List of user-assigned managed identity IDs"
+  type        = list(string)
+  default     = []
+}
+
+variable "entra_authentication" {
+  description = "Azure Entra authentication configuration block for Azure MySQL Flexible Server"
+  type = object({
+    user_assigned_identity_id = optional(string, null)
+    login                     = optional(string, null)
+    object_id                 = optional(string, null)
+  })
+  default = {}
 }
