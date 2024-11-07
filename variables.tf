@@ -316,3 +316,8 @@ variable "entra_authentication" {
   })
   default = {}
 }
+
+variable "mysql_server_name" {
+  type    = string
+  default = null
+}
