@@ -117,7 +117,7 @@ resource "azurerm_mysql_flexible_server" "main" {
 resource "azurerm_mysql_flexible_server_active_directory_administrator" "main" {
   count = length(var.entra_authentication.object_id[*]) > 0 ? 1 : 0
 
-  server_id   = join("", azurerm_mysql_flexible_server.main.*.id)
+  server_id   = join("", azurerm_mysql_flexible_server.main[*].id)
   identity_id = var.entra_authentication.user_assigned_identity_id
   login       = var.entra_authentication.login
   object_id   = var.entra_authentication.object_id
