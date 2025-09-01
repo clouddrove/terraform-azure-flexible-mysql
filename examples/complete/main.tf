@@ -74,7 +74,7 @@ module "subnet" {
 ##-----------------------------------------------------------------------------
 module "vault" {
   source  = "clouddrove/key-vault/azure"
-  version = "1.2.0"
+  version = "1.3.0"
 
   providers = {
     azurerm.dns_sub  = azurerm.peer,
